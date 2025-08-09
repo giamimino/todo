@@ -1,0 +1,23 @@
+@use '../../app/colors.scss' as *;
+
+.input {
+  width: 100%;
+  background-color: $SeaShell100;
+  color: $SeaShell950;
+  border-radius: 99px;
+  opacity: 0.5;
+  display: flex;
+  padding: 10px;
+  align-items: center;
+  gap: 6px;
+
+  input {
+    width: 100%;
+    &:focus {
+      outline: none;
+    }
+  }
+  &::placeholder {
+    color: $SeaShell950;
+  }
+}
