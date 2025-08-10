@@ -12,7 +12,7 @@ export default function InputForm(props: Props) {
   return (
     <div className={styles.input}>
       {props.icon && <label htmlFor={props.name}><Icon icon={props.icon} /></label>}
-      <input type="text" name={props.name} id={props.name} placeholder={props.placeholder} />
+      <input type={props.name} name={props.name} id={props.name} placeholder={props.placeholder} />
     </div>
   )
 }

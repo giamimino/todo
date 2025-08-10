@@ -33,12 +33,12 @@
         cursor: pointer;
         transition: all .4s ease;
         
-        &[type="button"] {
+        &[type="submit"] {
           background-color: $BlushPink400;
   
         }
   
-        &[type="submit"] {
+        &[type="button"] {
           background-color: #5865F2;
         }
 

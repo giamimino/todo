@@ -19,6 +19,7 @@ model User {
   username String @unique
   name String
   email String @unique
+  password String
   profileImage String @default("user")
   createdAt DateTime @default(now())
 
@@ -39,6 +40,9 @@ model Todo {
   favorite Favorite[]
   group Group @relation(fields: [groupId], references: [id])
   user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([groupId])
 }
 
 model Favorite {
@@ -47,6 +51,8 @@ model Favorite {
   user User @relation(fields: [userId], references: [id])
   todoId String
   todo Todo @relation(fields: [todoId], references: [id])
+
+  @@unique([userId, todoId])
 }
 
 model Group {
