@@ -1,0 +1,30 @@
+@use '../../../app/colors.scss' as *;
+
+.welcome {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  user-select: none;
+
+  >div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: $SeaShell950;
+
+    >p {
+      font-size: 14px;
+    }
+
+    >h1 {
+      font-weight: 700;
+    }
+  }
+
+  img {
+    border-radius: 50%;
+    padding: 3px;
+    border: 1px solid $BlushPink400;
+    cursor: pointer;
+  }
+}

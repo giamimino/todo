@@ -114,3 +114,88 @@ export async function signin(formData: FormData) {
     }
   }
 }
+
+export async function addTask(formData: FormData) {
+  try {
+    const title = formData.get("title") as string
+    const description = formData.get("description") as string
+    const deadlineStr = formData.get("deadline") as string
+    const deadline = deadlineStr ?? new Date(deadlineStr)
+
+    if(!title || !description || !deadlineStr) {
+      return {
+        success: false,
+        message: "Some required fields are missing."
+      }
+    }
+
+    const sessionId = (await cookies()).get("sessionId")?.value
+    const sessionRedisKey = `session:${sessionId}`
+    const userId = await redis.get(sessionRedisKey) as string
+    if(!userId) {
+      return {
+        success: false,
+        message: "Not authenticated."
+      }
+    }
+
+    const task = await prisma.todo.create({
+      data: {
+        title,
+        description,
+        deadline,
+        user: { connect: { id: userId } }
+      },
+      select: {
+        title: true,
+        description: true,
+        deadline: true
+      }
+    })
+
+    if(!task) {
+      return {
+        success: false,
+        message: "Task can't be created"
+      }
+    }
+
+    const response = {
+      success: true,
+      task
+    };
+
+    type Task = {
+      title: string,
+      description: string,
+      deadline: Date
+    }
+
+    (async () => {
+      try {
+        const cachedTasksKey = `cachedTasks:${sessionId}`
+        const cachedTasks = await redis.get(cachedTasksKey) as Task[]
+        if(cachedTasks) {
+          const newCachedTask = [
+            ...cachedTasks,
+            task
+          ];
+
+          await redis.set(cachedTasksKey, newCachedTask, { ex: 60 * 10 })
+        } else {
+          await redis.set(cachedTasksKey, [cachedTasks], { ex: 60 * 10 })
+        }
+      }catch(err) {
+        console.log(err);
+      }
+    })();
+
+    return response
+  }catch(err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong."
+    }
+  }
+}
