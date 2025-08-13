@@ -5,6 +5,10 @@
   --foreground: #0C0C0C;
 }
 
+* {
+  transition: all .4s ease;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

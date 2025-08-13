@@ -3,7 +3,14 @@ import styles from './style.module.scss'
 import { Icon } from '@iconify/react'
 import { addTask } from '@/actions/actions'
 
-export default function AddTask() {
+type Task = {
+  title: string;
+  description: string;
+  deadline: Date;
+  group: { title: string } | null;
+};
+
+export default function AddTask({ onAdd }: { onAdd: (task: Task) => void }) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -26,7 +33,10 @@ export default function AddTask() {
     const result = await addTask(formData)
 
     if(result.success) {
+      onAdd(result.task);
       setIsAdding(prev => !prev)
+    } else {
+      console.log(result.message);
     }
   }
 

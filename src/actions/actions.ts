@@ -5,6 +5,37 @@ import bcrypt from "bcrypt"
 import { cookies } from "next/headers"
 import cuid from 'cuid'
 
+type Todo = {
+  title: string,
+  description: string,
+  deadline: Date,
+  group: { title: string } | null
+}
+
+type User = {
+  id: string,
+  name: string,
+  profileImage: string,
+  todo: Todo[]
+}
+
+type Task = {
+  title: string;
+  description: string;
+  deadline: Date;
+  group: { title: string } | null;
+};
+
+type AddTaskSuccess = {
+  success: true;
+  task: Task;
+};
+
+type AddTaskError = {
+  success: false;
+  message: string;
+}
+
 export async function signup(formData: FormData) {
   try {
     const email = formData.get('email') as string
@@ -115,12 +146,12 @@ export async function signin(formData: FormData) {
   }
 }
 
-export async function addTask(formData: FormData) {
+export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddTaskError> {
   try {
     const title = formData.get("title") as string
     const description = formData.get("description") as string
     const deadlineStr = formData.get("deadline") as string
-    const deadline = deadlineStr ?? new Date(deadlineStr)
+    const deadline = deadlineStr ? new Date(deadlineStr) : null
 
     if(!title || !description || !deadlineStr) {
       return {
@@ -143,13 +174,14 @@ export async function addTask(formData: FormData) {
       data: {
         title,
         description,
-        deadline,
+        deadline: deadline || new Date(),
         user: { connect: { id: userId } }
       },
       select: {
         title: true,
         description: true,
-        deadline: true
+        deadline: true,
+        group: { select: { title: true } } 
       }
     })
 
@@ -160,37 +192,32 @@ export async function addTask(formData: FormData) {
       }
     }
 
-    const response = {
-      success: true,
-      task
-    };
-
-    type Task = {
-      title: string,
-      description: string,
-      deadline: Date
-    }
-
     (async () => {
       try {
-        const cachedTasksKey = `cachedTasks:${sessionId}`
-        const cachedTasks = await redis.get(cachedTasksKey) as Task[]
-        if(cachedTasks) {
-          const newCachedTask = [
-            ...cachedTasks,
-            task
-          ];
+        const cachedUserKey = `cachedUser:${sessionId}`
+        const cachedUser = await redis.get(cachedUserKey) as User;
+        if (!cachedUser) return
 
-          await redis.set(cachedTasksKey, newCachedTask, { ex: 60 * 10 })
-        } else {
-          await redis.set(cachedTasksKey, [cachedTasks], { ex: 60 * 10 })
+        const newCachedUser: User = {
+          ...cachedUser,
+          todo: [
+            ...(cachedUser.todo || []),
+            {
+              title: task.title,
+              description: task.description,
+              deadline: task.deadline,
+              group: task.group ? task.group : null
+            }
+          ]
         }
+
+        await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
       }catch(err) {
         console.log(err);
       }
     })();
 
-    return response
+    return { success: true, task };
   }catch(err) {
     console.log(err);
     return {

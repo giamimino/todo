@@ -30,12 +30,14 @@ export async function GET() {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
+        id: true,
         name: true,
         profileImage: true,
         todo: {
           select: {
             title: true,
             description: true,
+            deadline: true,
             group: {
               select: {
                 title: true,
