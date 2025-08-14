@@ -35,6 +35,7 @@ export async function GET() {
         profileImage: true,
         todo: {
           select: {
+            id: true,
             title: true,
             description: true,
             deadline: true,

@@ -3,9 +3,11 @@ import React, { useEffect, useState } from 'react'
 import styles from './groups.module.scss'
 import Group from './common/group';
 import { useSearchParams } from 'next/navigation';
+import AddGroup from '../addGroup/AddGroup';
 
 type Props = {
-  groupTitle?: string
+  groupTitle?: string[],
+  userId: string,
 }
 
 export default function Groups(props: Props) {
@@ -23,6 +25,7 @@ export default function Groups(props: Props) {
   
   const GROUPS = [
     { name: "aii" },
+    ...(props.groupTitle?.filter(name => name !== "aii").map(name => ({ name })) ?? [])
   ];
 
   return (
@@ -34,6 +37,9 @@ export default function Groups(props: Props) {
           fill={PGroup === group.name ? true : false}
         />
       ))}
+      <AddGroup
+        userId={props.userId}
+      />
     </div>
   )
 }

@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import styles from './style.module.scss'
+import styles from '../addTask/style.module.scss'
 import { Icon } from '@iconify/react'
-import { addTask } from '@/actions/actions'
+import { addGroup } from '@/actions/actions'
 
-type Task = {
-  id: string,
-  title: string;
-  description: string;
-  deadline: Date;
-  group: { title: string } | null;
-};
-
-export default function AddTask({ onAdd, }: { onAdd: (task: Task) => void }) {
+export default function ({ userId }: { userId: string }) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -28,49 +20,35 @@ export default function AddTask({ onAdd, }: { onAdd: (task: Task) => void }) {
   }, [isAdding])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault()
 
     const formData = new FormData(e.currentTarget)
-    const result = await addTask(formData)
-
-    if(result.success) {
-      onAdd(result.task);
-      setIsAdding(prev => !prev)
-    } else {
-      console.log(result.message);
-    }
+    const result = await addGroup(formData, userId)
   }
+
   return (
     <>
       {showForm && (
         <form
-          id='myForm'
           className={`${styles.form} ${animating ? styles.enter : styles.leave}`}
           onAnimationEnd={() => {
             if (!animating) {
               setShowForm(false)
             }
           }}
-          onSubmit={handleSubmit}
         >
           <input placeholder='Title' name='title' type="text" />
-          <input type="date" name='deadline' style={{ animationDelay: '200ms' }} />
-          <textarea placeholder='Description' name='description' style={{ animationDelay: '100ms'}} >
-          </textarea>
-        </form>
-      )}
-      <div className={`${styles.task} ${isAdding ? styles.shown : ''}  ${animating ? styles.enter : styles.leave}`} >
-        <button onClick={() => setIsAdding(prev => !prev)}>
-          <Icon icon="material-symbols:add-rounded" />
-        </button>
-        {showForm && (
-          <button onClick={() => {
-            const form = document.getElementById('myForm') as HTMLFormElement;
-            if (form) form.requestSubmit();
+          <button style={{
+            animationDelay: '100ms',
           }}>
             <Icon icon={'formkit:submit'} />
           </button>
-        )}
+        </form>
+      )}
+      <div className={`${styles.group} ${isAdding ? styles.shown : ''}  ${animating ? styles.enter : styles.leave}`} >
+        <button onClick={() => setIsAdding(prev => !prev)}>
+          <Icon icon="material-symbols:add-rounded" />
+        </button>
       </div>
     </>
   )

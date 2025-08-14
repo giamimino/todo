@@ -6,6 +6,7 @@ import { cookies } from "next/headers"
 import cuid from 'cuid'
 
 type Todo = {
+  id: string,
   title: string,
   description: string,
   deadline: Date,
@@ -20,6 +21,7 @@ type User = {
 }
 
 type Task = {
+  id: string,
   title: string;
   description: string;
   deadline: Date;
@@ -178,6 +180,7 @@ export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddT
         user: { connect: { id: userId } }
       },
       select: {
+        id: true,
         title: true,
         description: true,
         deadline: true,
@@ -202,7 +205,8 @@ export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddT
           ...cachedUser,
           todo: [
             ...(cachedUser.todo || []),
-            {
+            { 
+              id: task.id,
               title: task.title,
               description: task.description,
               deadline: task.deadline,
@@ -218,6 +222,60 @@ export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddT
     })();
 
     return { success: true, task };
+  }catch(err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong."
+    }
+  }
+}
+
+export async function addGroup(formData: FormData, userId: string) {
+  try {
+    const title = formData.get("title") as string
+    if(!title) {
+      return {
+        success: false,
+        message: "Some required fields are missing."
+      }
+    }
+
+    const group = await prisma.group.create({
+      data: {
+        title: title.toLowerCase(),
+        userId
+      },
+      select: {
+        title: true
+      }
+    })
+    if(!group) {
+      return {
+        success: false,
+        message: "Group can't be created"
+      }
+    }
+    const response = {
+      success: true,
+      group
+    };
+
+    (async () => {
+      const sessionId = (await cookies()).get("sessionId")?.value
+      const cachedUserKey = `cachedUser:${sessionId}`
+      const cachedUser = await redis.get(cachedUserKey) as any
+      if(!cachedUser) return
+
+      const newCachedUser: any = {
+        ...cachedUser,
+        groups: [...(cachedUser.groups || []), group]
+      }
+
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+    })()
+
+    return response
   }catch(err) {
     console.log(err);
     return {

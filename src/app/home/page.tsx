@@ -14,8 +14,10 @@ type Group = {
 }
 
 type Todo = {
+  id: string,
   title: string,
   description: string,
+  deadline: Date,
   group: Group | null
 }
 
@@ -24,9 +26,11 @@ type User = {
   name: string,
   profileImage: string,
   todo: Todo[]
+  groups?: string[]
 }
 
 type Task = {
+  id: string,
   title: string;
   description: string;
   deadline: Date;
@@ -57,11 +61,20 @@ export default function Home() {
     const newTodo: Todo = {
       title: task.title,
       description: task.description,
-      group: task.group || null
+      group: task.group || null,
+      deadline: task.deadline,
+      id: task.id,
     }
     setUser(prev => prev ? {
       ...prev,
       todo: [...prev.todo, newTodo]
+    } : prev)
+  }
+
+  function handleDelTask(taskId: string) {
+    setUser(prev => prev ? {
+      ...prev,
+      todo: prev.todo.filter((todo) => todo.id !== taskId)
     } : prev)
   }
   
@@ -81,7 +94,10 @@ export default function Home() {
           description='description'
         />
         <Search />
-        <Groups />
+        <Groups
+        userId={user.id}
+          groupTitle={user.groups || []}  
+        />
         <main>
           {user.todo.map((task, index) => (
             <Task
@@ -90,11 +106,14 @@ export default function Home() {
               description={task.description}
               isRun={false}
               delay={index * 100}
+              userId={user.id}
+              id={task.id}
+              onDel={handleDelTask}
             />
           ))}
         </main>
         <AddTask 
-        onAdd={handleAddTask}
+          onAdd={handleAddTask}
         />
       </div>
       }
