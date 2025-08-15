@@ -45,6 +45,11 @@ export async function GET() {
               }
             }
           }
+        },
+        group: {
+          select: {
+            title: true
+          }
         }
       },
     })
@@ -54,30 +59,25 @@ export async function GET() {
       return errorResponse("user can't be found")
     }
 
-    const response = {
-      success: true,
-      user
-    };
-    
     (async () => {
       try {
         await redis.set(
           cachedUserKey,
           user,
           { ex: 60 * 10 }
-        )
-      } catch(err) {
+        );
+      } catch (err) {
         console.error(err);
       }
     })();
 
-    return NextResponse.json(response)
+    return NextResponse.json({
+      success: true,
+      user
+    })
 
   }catch(err) {
     console.log(err);
-    return {
-      success: false,
-      message: "Something went wrong."
-    }
+    return errorResponse("Something went wrong.")
   }
 }

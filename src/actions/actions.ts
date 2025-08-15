@@ -17,7 +17,12 @@ type User = {
   id: string,
   name: string,
   profileImage: string,
-  todo: Todo[]
+  todo: Todo[],
+  groups: Groups[]
+}
+
+type Groups = {
+  title: string,
 }
 
 type Task = {
@@ -128,7 +133,7 @@ export async function signin(formData: FormData) {
     const sessionId = cuid()
     const cookieStore = await cookies()
     cookieStore.set("sessionId", sessionId, {
-      maxAge: 2 * 24 * 60 * 60, // 2 days
+      maxAge: 2 * 24 * 60 * 60,
       secure: true,
       httpOnly: true,
     })
@@ -243,7 +248,7 @@ export async function addGroup(formData: FormData, userId: string) {
 
     const group = await prisma.group.create({
       data: {
-        title: title.toLowerCase(),
+        title,
         userId
       },
       select: {
@@ -256,10 +261,6 @@ export async function addGroup(formData: FormData, userId: string) {
         message: "Group can't be created"
       }
     }
-    const response = {
-      success: true,
-      group
-    };
 
     (async () => {
       const sessionId = (await cookies()).get("sessionId")?.value
@@ -269,13 +270,18 @@ export async function addGroup(formData: FormData, userId: string) {
 
       const newCachedUser: any = {
         ...cachedUser,
-        groups: [...(cachedUser.groups || []), group]
+        groups: [...(cachedUser.groups || []), {
+          title: group.title
+        }]
       }
 
       await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
     })()
 
-    return response
+    return {
+      success: true,
+      group
+    }
   }catch(err) {
     console.log(err);
     return {

@@ -1,122 +1,112 @@
 'use client'
 import Header from '@/components/header/header'
 import WelcomeWrapper from '@/components/ui/welcome/WelcomeWrapper'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import styles from './page.module.scss'
 import AddTask from '@/components/addTask/AddTaks'
-import Run from '@/components/run/Run'
 import Task from '@/components/ui/common/Task'
 import Search from '@/components/ui/common/search'
 import Groups from '@/components/ui/groups'
 
-type Group = {
-  title: string,
-}
-
-type Todo = {
-  id: string,
-  title: string,
-  description: string,
-  deadline: Date,
-  group: Group | null
-}
-
-type User = {
-  id: string,
-  name: string,
-  profileImage: string,
-  todo: Todo[]
-  groups?: string[]
-}
-
-type Task = {
-  id: string,
-  title: string;
-  description: string;
-  deadline: Date;
-  group: Group | null;
-};
+type Group = { title: string }
+type Todo = { id: string; title: string; description: string; deadline: Date; group: Group | null }
+type User = { id: string; name: string; profileImage: string; todo: Todo[]; group?: Group[] | null }
+type Task = { id: string; title: string; description: string; deadline: Date; group: Group | null }
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [selectedGroup, setSelectedGroup] = useState("AII")
 
   useEffect(() => {
-    fetch('/api/user/get').then(res => res.json())
-    .then(data => {
-      if(data.success) {
-        setUser(data.user)
-        setLoading(false)
-      } else {
-        setLoading(false)
-        if(!data.success) {
+    const controller = new AbortController()
+
+    fetch('/api/user/get', { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setUser(data.user)
+        } else {
           setError("Something went wrong")
         }
-      }
-    })
+        setLoading(false)
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') console.error(err)
+        setLoading(false)
+      })
+
+    return () => controller.abort()
   }, [])
 
+  const filteredTasks = useMemo(() => {
+    if (!user) return []
+    if (selectedGroup === "AII") return user.todo
+    return user.todo.filter(todo => todo.group?.title === selectedGroup)
+  }, [user, selectedGroup])
+
   function handleAddTask(task: Task) {
-    const newTodo: Todo = {
-      title: task.title,
-      description: task.description,
-      group: task.group || null,
-      deadline: task.deadline,
-      id: task.id,
-    }
-    setUser(prev => prev ? {
-      ...prev,
-      todo: [...prev.todo, newTodo]
-    } : prev)
+    const newTodo: Todo = { ...task, group: task.group || null }
+    setUser(prev => prev ? { ...prev, todo: [...prev.todo, newTodo] } : prev)
   }
 
   function handleDelTask(taskId: string) {
-    setUser(prev => prev ? {
-      ...prev,
-      todo: prev.todo.filter((todo) => todo.id !== taskId)
-    } : prev)
+    setUser(prev => prev ? { ...prev, todo: prev.todo.filter(t => t.id !== taskId) } : prev)
   }
-  
+
+  function handleAddGroup(group: string) {
+    setUser(prev => prev ? { ...prev, group: [...(prev.group || []), { title: group }] } : prev)
+  }
+
+  function handleFilterGroups(group: string) {
+    setSelectedGroup(group)
+  }
+
+  if (loading) return <p>loading...</p>
+  if (!user) return <p>{error}</p>
+
   return (
-    <>
-      {loading ?
-        <p>loading...</p> : 
-        !user ? <p>{error}</p> :
-        <div className={styles.page}>
-        <Header />
-        <WelcomeWrapper
-          name={user.name || ""}
-          iamge={user.profileImage === 'user' ? '/user.webp' : user.profileImage}
-        />
-        <Run
-          title='title'
-          description='description'
-        />
-        <Search />
-        <Groups
+    <div className={styles.page}>
+      <Header />
+      <WelcomeWrapper
+        name={user.name || ""}
+        iamge={user.profileImage === 'user' ? '/user.webp' : user.profileImage}
+      />
+      <div className={styles.run}>
+      <h1>Run</h1>
+      <Task
         userId={user.id}
-          groupTitle={user.groups || []}  
-        />
-        <main>
-          {user.todo.map((task, index) => (
-            <Task
-              key={task.title}
-              title={task.title}
-              description={task.description}
-              isRun={false}
-              delay={index * 100}
-              userId={user.id}
-              id={task.id}
-              onDel={handleDelTask}
-            />
-          ))}
-        </main>
-        <AddTask 
-          onAdd={handleAddTask}
-        />
-      </div>
-      }
-    </>
+        id={`jwdahdiawhdhawuihd`}
+        title={'title'}
+        description='description'
+        isRun={true}
+        onDel={handleDelTask}
+        delay={0}
+      />
+    </div>
+      <Search />
+      <Groups
+        userId={user.id}
+        groupTitle={user.group || []}
+        onAdd={handleAddGroup}
+        onFilter={handleFilterGroups}
+      />
+      <main>
+        {filteredTasks.map((task, index) => (
+          <Task
+            key={task.id}
+            title={task.title}
+            description={task.description}
+            isRun={false}
+            delay={index * 100}
+            userId={user.id}
+            id={task.id}
+            onDel={handleDelTask}
+          />
+        ))}
+      </main>
+      <AddTask onAdd={handleAddTask} />
+    </div>
   )
 }

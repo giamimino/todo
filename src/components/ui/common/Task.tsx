@@ -22,7 +22,6 @@ type Props = {
 }
 
 
-
 export default function Task(props: Props) {
   const [inView, setInView] = useState(false)
   const [isEdit, setIsEdit] = useState(false)

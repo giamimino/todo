@@ -1,44 +1,52 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import styles from './groups.module.scss'
-import Group from './common/group';
-import { useSearchParams } from 'next/navigation';
-import AddGroup from '../addGroup/AddGroup';
+import Group from './common/group'
+import { useSearchParams } from 'next/navigation'
+import AddGroup from '../addGroup/AddGroup'
 
+type Group = { title: string }
 type Props = {
-  groupTitle?: string[],
-  userId: string,
+  groupTitle?: Group[]
+  userId: string
+  onAdd: (group: string) => void
+  onFilter: (group: string) => void
 }
 
-export default function Groups(props: Props) {
+export default function Groups({ groupTitle, userId, onAdd, onFilter }: Props) {
   const searchParam = useSearchParams()
-  const [PGroup, setPGroup] = useState("")
+  const groupParam = searchParam.get("group") ?? "AII"
+  const [PGroup, setPGroup] = useState(groupParam)
 
-  useEffect(() => {
-    const param = searchParam.get('group') as string
-    if(!param) {
-      setPGroup('aii')
-    } else {
-      setPGroup(param)
-    }
-  }, [searchParam])
-  
-  const GROUPS = [
-    { name: "aii" },
-    ...(props.groupTitle?.filter(name => name !== "aii").map(name => ({ name })) ?? [])
-  ];
+  const groups = useMemo(() => {
+    return [
+      { name: "AII" },
+      ...(groupTitle?.filter(g => g.title !== "AII").map(g => ({ name: g.title })) ?? [])
+    ]
+  }, [groupTitle])
+
+  function handleAddGroup(newGroupName: string) {
+    onAdd(newGroupName)
+  }
+
+  function handleSelect(group: string) {
+    setPGroup(group)
+    onFilter(group)
+  }
 
   return (
-    <div className={`${styles.groups}`}>
-      {GROUPS.map((group) => (
+    <div className={styles.groups}>
+      {groups.map((group) => (
         <Group
           key={group.name}
           title={group.name}
-          fill={PGroup === group.name ? true : false}
+          fill={PGroup === group.name}
+          onSelect={handleSelect}
         />
       ))}
       <AddGroup
-        userId={props.userId}
+        userId={userId}
+        onAdd={handleAddGroup}
       />
     </div>
   )

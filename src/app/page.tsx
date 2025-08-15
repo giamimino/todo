@@ -1,30 +1,14 @@
 'use client'
 import InputForm from "@/components/ui/input";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import styles from './page.module.scss';
 import { signin, signup } from "@/actions/actions";
 
 export default function Home() {
   const [auth, setAuth] = useState(false)
   const [error, setError] = useState("")
-  const searchParams = useSearchParams()
   const router = useRouter()
-
-  function handleParam(value: string) {
-    const param = new URLSearchParams(searchParams.toString())
-    param.set('auth', value)
-    router.push(`/?${param.toString()}`)
-  }
-
-  useEffect(() => {
-    const param = searchParams.get("auth")
-    if(param === "signin") {
-      setAuth(true)
-    } else {
-      setAuth(false)
-    }
-  }, [searchParams])
 
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -79,7 +63,7 @@ export default function Home() {
           <button type="submit">Sign in</button>
           <p>else</p>
           <button type="button">Discord</button>
-          <p>{"Don't"} have an account? <button type="button" onClick={() => handleParam('signup')} className='cursor-pointer'>Sign up</button></p>
+          <p>{"Don't"} have an account? <button type="button" onClick={() => setAuth(false)} className='cursor-pointer'>Sign up</button></p>
         </div>
       </form> :
       <form onSubmit={handleSignup}>
@@ -104,7 +88,7 @@ export default function Home() {
           <button type="submit">Sign up</button>
           <p>else</p>
           <button type="button">Discord</button>
-          <p>Already have an account? <button type="button" onClick={() => handleParam('signin')} className='cursor-pointer'>Sign in</button></p>
+          <p>Already have an account? <button type="button" onClick={() => setAuth(true)} className='cursor-pointer'>Sign in</button></p>
         </div>
       </form>
       }

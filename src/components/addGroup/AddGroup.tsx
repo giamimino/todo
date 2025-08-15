@@ -3,7 +3,7 @@ import styles from '../addTask/style.module.scss'
 import { Icon } from '@iconify/react'
 import { addGroup } from '@/actions/actions'
 
-export default function ({ userId }: { userId: string }) {
+export default function ({ userId, onAdd }: { userId: string, onAdd: (group: string) => void }) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -24,6 +24,11 @@ export default function ({ userId }: { userId: string }) {
 
     const formData = new FormData(e.currentTarget)
     const result = await addGroup(formData, userId)
+
+    if(result.success) {
+      onAdd(result.group!.title)
+      setIsAdding(false)
+    }
   }
 
   return (
@@ -36,6 +41,7 @@ export default function ({ userId }: { userId: string }) {
               setShowForm(false)
             }
           }}
+          onSubmit={handleSubmit}
         >
           <input placeholder='Title' name='title' type="text" />
           <button style={{
