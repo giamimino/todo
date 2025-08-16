@@ -3,7 +3,7 @@ import styles from '../addTask/style.module.scss'
 import { Icon } from '@iconify/react'
 import { addGroup } from '@/actions/actions'
 
-export default function ({ userId, onAdd }: { userId: string, onAdd: (group: string) => void }) {
+export default function ({ userId, onAdd, onError }: { onError: (error: string) => void,userId: string, onAdd: (group: string) => void }) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -28,6 +28,10 @@ export default function ({ userId, onAdd }: { userId: string, onAdd: (group: str
     if(result.success) {
       onAdd(result.group!.title)
       setIsAdding(false)
+    } else {
+      if(!result.success) {
+        onError(result.message || "Something went wrong.")
+      }
     }
   }
 

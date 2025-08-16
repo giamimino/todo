@@ -7,6 +7,7 @@ import AddTask from '@/components/addTask/AddTaks'
 import Task from '@/components/ui/common/Task'
 import Search from '@/components/ui/common/search'
 import Groups from '@/components/ui/groups'
+import Error from '@/components/ui/common/error'
 
 type Group = { title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; group: Group | null }
@@ -18,6 +19,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("AII")
+  const [searchValue, setSearchValue] = useState("")
 
   useEffect(() => {
     const controller = new AbortController()
@@ -42,9 +44,15 @@ export default function Home() {
 
   const filteredTasks = useMemo(() => {
     if (!user) return []
-    if (selectedGroup === "AII") return user.todo
-    return user.todo.filter(todo => todo.group?.title === selectedGroup)
-  }, [user, selectedGroup])
+    if (selectedGroup === "AII" || searchValue !== "") {
+      return user.todo.filter((task) => task.title.includes(searchValue))
+    }
+    if(searchValue !== "" || selectedGroup) {
+      const newTasks = user.todo.filter(todo => todo.group?.title === selectedGroup)
+      newTasks.filter((task) => task.title.includes(searchValue))
+      return newTasks
+    }
+  }, [user, selectedGroup, searchValue])
 
   function handleAddTask(task: Task) {
     const newTodo: Todo = { ...task, group: task.group || null }
@@ -66,8 +74,20 @@ export default function Home() {
   if (loading) return <p>loading...</p>
   if (!user) return <p>{error}</p>
 
+  function handleErrorMessage(error: string) {
+    setError(error)
+    setTimeout(() => {
+      setError('')
+    }, 3000)
+  }
+
+  function handleFilterSearch(value: string) {
+    setSearchValue(value)
+  }
+
   return (
     <div className={styles.page}>
+      {error !== "" && <Error error={error} />}
       <Header />
       <WelcomeWrapper
         name={user.name || ""}
@@ -83,17 +103,21 @@ export default function Home() {
         isRun={true}
         onDel={handleDelTask}
         delay={0}
+        onError={handleErrorMessage}
       />
     </div>
-      <Search />
+      <Search 
+        onChange={handleFilterSearch}
+      />
       <Groups
         userId={user.id}
         groupTitle={user.group || []}
         onAdd={handleAddGroup}
         onFilter={handleFilterGroups}
+        onError={handleErrorMessage}
       />
       <main>
-        {filteredTasks.map((task, index) => (
+        {filteredTasks!.map((task, index) => (
           <Task
             key={task.id}
             title={task.title}
@@ -103,10 +127,11 @@ export default function Home() {
             userId={user.id}
             id={task.id}
             onDel={handleDelTask}
+            onError={handleErrorMessage}
           />
         ))}
       </main>
-      <AddTask onAdd={handleAddTask} />
+      <AddTask onAdd={handleAddTask} onError={handleErrorMessage} />
     </div>
   )
 }

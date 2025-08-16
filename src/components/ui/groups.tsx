@@ -11,9 +11,10 @@ type Props = {
   userId: string
   onAdd: (group: string) => void
   onFilter: (group: string) => void
+  onError: (error: string) => void
 }
 
-export default function Groups({ groupTitle, userId, onAdd, onFilter }: Props) {
+export default function Groups({ groupTitle, userId, onAdd, onFilter, onError }: Props) {
   const searchParam = useSearchParams()
   const groupParam = searchParam.get("group") ?? "AII"
   const [PGroup, setPGroup] = useState(groupParam)
@@ -47,6 +48,7 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter }: Props) {
       <AddGroup
         userId={userId}
         onAdd={handleAddGroup}
+        onError={onError}
       />
     </div>
   )

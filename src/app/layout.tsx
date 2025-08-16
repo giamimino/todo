@@ -1,6 +1,7 @@
 import { Roboto_Flex } from 'next/font/google';
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const robotoFlex = Roboto_Flex({ subsets: ['latin'] });
 
@@ -17,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={robotoFlex.className}>
       <body>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,3 +1,71 @@
+@use '../../../app/colors.scss' as *;
+
 .error {
-  background-color: $SeaShell400;
+  position: fixed;
+  left: 50%;
+  top: 20px;
+  transform: translateX(-50%);
+  background-color: $SeaShell100;
+  padding: 12px 24px;
+  border-radius: 15px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    width: 6px;
+    height: 100%;
+    background-color: tomato;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  &.enter {
+    animation: enter 1s ease forwards;
+  }
+  
+  &.leave {
+    animation: leave 1s ease forwards;
+  }
+}
+
+
+@keyframes enter {
+ 0% {
+  transform: translate(-50%, -100px) scale(0);
+  background-color: $SeaShell600;
+  opacity: 0;
+  filter: blur(10px);
+ }
+ 40% {
+  transform: translate(-50%, 0) scale(0.5);
+  opacity: 1;
+ }
+ 100% {
+  opacity: 1;
+  filter: blur(0);
+  background-color: $SeaShell100;
+  transform: translate(-50%, 0) scale(1);
+ }
+}
+
+@keyframes leave {
+ 0% {
+   opacity: 1;
+   filter: blur(0);
+   background-color: $SeaShell100;
+  }
+  40% {
+    transform: translate(-50%, 0) scale(0.3);
+    opacity: 0.5;
+  }
+  100% {
+   transform: translate(-50%, -100px) scale(0);
+   background-color: $SeaShell600;
+   opacity: 0;
+   filter: blur(10px);
+ }
 }

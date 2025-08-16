@@ -11,7 +11,7 @@ type Task = {
   group: { title: string } | null;
 };
 
-export default function AddTask({ onAdd, }: { onAdd: (task: Task) => void }) {
+export default function AddTask({ onAdd, onError }: { onError: (error: string) => void, onAdd: (task: Task) => void }) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -37,7 +37,9 @@ export default function AddTask({ onAdd, }: { onAdd: (task: Task) => void }) {
       onAdd(result.task);
       setIsAdding(prev => !prev)
     } else {
-      console.log(result.message);
+      if(!result.success) {
+        onError(result.message || "Something went wrong.")
+      }
     }
   }
   return (

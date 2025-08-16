@@ -19,6 +19,7 @@ type Props = {
   delay: number,
   userId: string,
   onDel: (taskId: string) => void
+  onError: (error: string) => void
 }
 
 
@@ -57,6 +58,8 @@ export default function Task(props: Props) {
       if(data.success) {
         props.onDel(data.taskId)
         setIsEdit(false)
+      } else if(!data.success) {
+        props.onError(data.message || "Something went wrong.")
       }
     })
   }
