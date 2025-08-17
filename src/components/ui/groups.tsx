@@ -1,8 +1,7 @@
 'use client'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import styles from './groups.module.scss'
 import Group from './common/group'
-import { useSearchParams } from 'next/navigation'
 import AddGroup from '../addGroup/AddGroup'
 
 type Group = { title: string }
@@ -12,12 +11,11 @@ type Props = {
   onAdd: (group: string) => void
   onFilter: (group: string) => void
   onError: (error: string) => void
+  onClick: (title: string) => void
 }
 
-export default function Groups({ groupTitle, userId, onAdd, onFilter, onError }: Props) {
-  const searchParam = useSearchParams()
-  const groupParam = searchParam.get("group") ?? "AII"
-  const [PGroup, setPGroup] = useState(groupParam)
+export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, onClick }: Props) {
+  const [PGroup, setPGroup] = useState('AII')
 
   const groups = useMemo(() => {
     return [
@@ -43,6 +41,7 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError }:
           title={group.name}
           fill={PGroup === group.name}
           onSelect={handleSelect}
+          onClick={onClick}
         />
       ))}
       <AddGroup

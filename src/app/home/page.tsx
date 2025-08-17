@@ -8,6 +8,9 @@ import Task from '@/components/ui/common/Task'
 import Search from '@/components/ui/common/search'
 import Groups from '@/components/ui/groups'
 import Error from '@/components/ui/common/error'
+import GroupSide from '@/components/group/Group'
+import { AnimatePresence, motion } from 'framer-motion'
+
 
 type Group = { title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; group: Group | null }
@@ -20,6 +23,12 @@ export default function Home() {
   const [error, setError] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("AII")
   const [searchValue, setSearchValue] = useState("")
+  const [isGroupSide, setIsGroupSide] = useState<Task[] | null>(null)
+  const number = [10, 20, 40, 2, 8]
+  let output = 0
+  output = number.reduce((acc: number, num: number) => acc > num ? num : acc, number[0])
+  console.log(output);
+  
 
   useEffect(() => {
     const controller = new AbortController()
@@ -42,16 +51,22 @@ export default function Home() {
     return () => controller.abort()
   }, [])
 
+  const run = useMemo(() => {
+    return user?.todo.reduce((acc, num) => acc > num ? num : acc, user.todo[0])
+  }, [user])
+
   const filteredTasks = useMemo(() => {
     if (!user) return []
-    if (selectedGroup === "AII" || searchValue !== "") {
-      return user.todo.filter((task) => task.title.includes(searchValue))
+    if(searchValue !== "") {
+      return user.todo.filter((task) => task.title.toLowerCase().includes(searchValue.toLowerCase()))
     }
-    if(searchValue !== "" || selectedGroup) {
-      const newTasks = user.todo.filter(todo => todo.group?.title === selectedGroup)
-      newTasks.filter((task) => task.title.includes(searchValue))
-      return newTasks
+    if (selectedGroup === "AII") {
+      return user.todo
     }
+
+    return user.todo.filter(todo => todo.group?.title === selectedGroup &&
+      todo.title.toLowerCase().includes(searchValue.toLowerCase())
+    )
   }, [user, selectedGroup, searchValue])
 
   function handleAddTask(task: Task) {
@@ -85,27 +100,67 @@ export default function Home() {
     setSearchValue(value)
   }
 
+  function handleGroupSide(title: string) {
+    if(title !== "AII") {
+      setIsGroupSide(user?.todo.filter((task) => task.group?.title === title) || null)
+    }
+  }
+
+  function handleCloseGroupSide() {
+      setIsGroupSide(null)
+  }
+
   return (
     <div className={styles.page}>
       {error !== "" && <Error error={error} />}
+      <AnimatePresence>
+        {isGroupSide !== null && (
+          <motion.main
+            initial={{ x: "200vw" }}
+            animate={{ x: 0 }}
+            exit={{ x: "200vw" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            style={{
+              position: "fixed",
+              top: 0,
+              height: "100%",
+              width: "100%",
+              zIndex: 9999,
+            }}
+          >
+           <GroupSide
+              userId={user.id} 
+              tasks={isGroupSide} 
+              onDel={handleDelTask} 
+              onError={handleErrorMessage} 
+              title={selectedGroup} 
+              onClick={handleCloseGroupSide} 
+            />
+          </motion.main>
+        )}
+      </AnimatePresence>
+
+
       <Header />
       <WelcomeWrapper
         name={user.name || ""}
         iamge={user.profileImage === 'user' ? '/user.webp' : user.profileImage}
       />
-      <div className={styles.run}>
-      <h1>Run</h1>
-      <Task
-        userId={user.id}
-        id={`jwdahdiawhdhawuihd`}
-        title={'title'}
-        description='description'
-        isRun={true}
-        onDel={handleDelTask}
-        delay={0}
-        onError={handleErrorMessage}
-      />
-    </div>
+      {run &&
+        <div className={styles.run}>
+          <h1>Run</h1>
+          <Task
+            userId={user.id}
+            id={run.id}
+            title={run.title}
+            description={run.description}
+            isRun={true}
+            onDel={handleDelTask}
+            delay={0}
+            onError={handleErrorMessage}
+          />
+        </div>
+      }
       <Search 
         onChange={handleFilterSearch}
       />
@@ -115,6 +170,7 @@ export default function Home() {
         onAdd={handleAddGroup}
         onFilter={handleFilterGroups}
         onError={handleErrorMessage}
+        onClick={handleGroupSide}
       />
       <main>
         {filteredTasks!.map((task, index) => (

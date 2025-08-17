@@ -290,3 +290,9 @@ export async function addGroup(formData: FormData, userId: string) {
     }
   }
 }
+
+export async function addTaskToGroup(formData: FormData) {
+  try {
+    const title = formData.get("title")
+  }
+}
