@@ -12,7 +12,7 @@ import GroupSide from '@/components/group/Group'
 import { AnimatePresence, motion } from 'framer-motion'
 
 
-type Group = { title: string }
+type Group = { id: string, title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; group: Group | null }
 type User = { id: string; name: string; profileImage: string; todo: Todo[]; group?: Group[] | null }
 type Task = { id: string; title: string; description: string; deadline: Date; group: Group | null }
@@ -23,11 +23,7 @@ export default function Home() {
   const [error, setError] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("AII")
   const [searchValue, setSearchValue] = useState("")
-  const [isGroupSide, setIsGroupSide] = useState<Task[] | null>(null)
-  const number = [10, 20, 40, 2, 8]
-  let output = 0
-  output = number.reduce((acc: number, num: number) => acc > num ? num : acc, number[0])
-  console.log(output);
+  const [isGroupSide, setIsGroupSide] = useState("")
   
 
   useEffect(() => {
@@ -78,8 +74,8 @@ export default function Home() {
     setUser(prev => prev ? { ...prev, todo: prev.todo.filter(t => t.id !== taskId) } : prev)
   }
 
-  function handleAddGroup(group: string) {
-    setUser(prev => prev ? { ...prev, group: [...(prev.group || []), { title: group }] } : prev)
+  function handleAddGroup(group: string, id: string) {
+    setUser(prev => prev ? { ...prev, group: [...(prev.group || []), { title: group, id: id }] } : prev)
   }
 
   function handleFilterGroups(group: string) {
@@ -101,20 +97,38 @@ export default function Home() {
   }
 
   function handleGroupSide(title: string) {
-    if(title !== "AII") {
-      setIsGroupSide(user?.todo.filter((task) => task.group?.title === title) || null)
+    if (title !== "AII") {
+      const group = user?.group?.find(g => g.title === title);
+      if (group) setIsGroupSide(group.id);
     }
   }
 
+
   function handleCloseGroupSide() {
-      setIsGroupSide(null)
+      setIsGroupSide("")
+  }
+
+  function handleGroupChange(group: {id: string, title: string}, taskId: string) {
+    setUser(prev => prev ? {
+      ...prev,
+      todo: prev.todo.map(t => 
+        t.id === taskId ?
+        {
+          ...t,
+          group: {
+            id: group.id,
+            title: group.title
+          }
+        } : t
+      )
+    } : prev)
   }
 
   return (
     <div className={styles.page}>
       {error !== "" && <Error error={error} />}
       <AnimatePresence>
-        {isGroupSide !== null && (
+        {isGroupSide !== "" && (
           <motion.main
             initial={{ x: "200vw" }}
             animate={{ x: 0 }}
@@ -130,11 +144,13 @@ export default function Home() {
           >
            <GroupSide
               userId={user.id} 
-              tasks={isGroupSide} 
+              tasks={user.todo} 
               onDel={handleDelTask} 
               onError={handleErrorMessage} 
               title={selectedGroup} 
               onClick={handleCloseGroupSide} 
+              groupId={isGroupSide}
+              onGroup={handleGroupChange}
             />
           </motion.main>
         )}

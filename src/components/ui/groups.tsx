@@ -4,11 +4,11 @@ import styles from './groups.module.scss'
 import Group from './common/group'
 import AddGroup from '../addGroup/AddGroup'
 
-type Group = { title: string }
+type Group = { id: string, title: string }
 type Props = {
   groupTitle?: Group[]
   userId: string
-  onAdd: (group: string) => void
+  onAdd: (group: string, id: string) => void
   onFilter: (group: string) => void
   onError: (error: string) => void
   onClick: (title: string) => void
@@ -23,10 +23,6 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, o
       ...(groupTitle?.filter(g => g.title !== "AII").map(g => ({ name: g.title })) ?? [])
     ]
   }, [groupTitle])
-
-  function handleAddGroup(newGroupName: string) {
-    onAdd(newGroupName)
-  }
 
   function handleSelect(group: string) {
     setPGroup(group)
@@ -46,7 +42,7 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, o
       ))}
       <AddGroup
         userId={userId}
-        onAdd={handleAddGroup}
+        onAdd={onAdd}
         onError={onError}
       />
     </div>

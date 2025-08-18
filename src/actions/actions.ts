@@ -10,7 +10,7 @@ type Todo = {
   title: string,
   description: string,
   deadline: Date,
-  group: { title: string } | null
+  group: { id: string, title: string} | null
 }
 
 type User = {
@@ -22,6 +22,7 @@ type User = {
 }
 
 type Groups = {
+  id: string,
   title: string,
 }
 
@@ -30,7 +31,7 @@ type Task = {
   title: string;
   description: string;
   deadline: Date;
-  group: { title: string } | null;
+  group: { id: string, title: string } | null;
 };
 
 type AddTaskSuccess = {
@@ -189,7 +190,7 @@ export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddT
         title: true,
         description: true,
         deadline: true,
-        group: { select: { title: true } } 
+        group: { select: { id: true, title: true } } 
       }
     })
 
@@ -252,6 +253,7 @@ export async function addGroup(formData: FormData, userId: string) {
         userId
       },
       select: {
+        id: true,
         title: true
       }
     })
@@ -271,7 +273,8 @@ export async function addGroup(formData: FormData, userId: string) {
       const newCachedUser: any = {
         ...cachedUser,
         groups: [...(cachedUser.groups || []), {
-          title: group.title
+          title: group.title,
+          id: group.id
         }]
       }
 
@@ -288,11 +291,5 @@ export async function addGroup(formData: FormData, userId: string) {
       success: false,
       message: "Something went wrong."
     }
-  }
-}
-
-export async function addTaskToGroup(formData: FormData) {
-  try {
-    const title = formData.get("title")
   }
 }

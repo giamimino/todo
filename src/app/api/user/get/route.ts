@@ -48,6 +48,7 @@ export async function GET() {
         },
         group: {
           select: {
+            id: true,
             title: true
           }
         }

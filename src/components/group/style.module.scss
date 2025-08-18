@@ -94,13 +94,13 @@
     }
 
     button[data-hovered] {
-        background-color: $BlushPink400;
-        color: $SeaShell25;
-        opacity: 1;
+      background-color: $BlushPink400;
+      color: $SeaShell25;
+      opacity: 1;
 
-        &:hover {
-          opacity: 0.9;
-        }
+      &:hover {
+        opacity: 0.9;
+      }
     }
   }
 }
@@ -111,5 +111,77 @@
   }
   100%{
     transform: translateX(0);
+  }
+}
+
+.tasks {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  top: 0;
+  right: 0;
+  background-color: $SeaShell50;
+  padding: 10px 20px;
+
+  >aside {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+.toggle {
+  width: 30px;
+  height:30px;
+  border-radius: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  cursor: pointer;
+  font-size: 332px;
+  background-color: $BlushPink400;
+  color: $SeaShell25;
+  margin-inline: auto;
+
+    &:hover {
+      opacity: 0.9;
+    }
+}
+
+.task {
+  width: 100%;
+  padding: 10px;
+  border-radius: 15px;
+  color: $SeaShell950;
+  display: flex;
+  flex-direction: column;
+  background-color: $SeaShell25;
+  gap: 5px;
+  opacity: 0;
+  transform: translateY(30px) scale(0.7);
+  filter: blur(10px);
+  transition: all 0.5s ease;
+  position: relative;
+  max-height: 58px;
+  cursor: pointer;
+  >h1 {
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  >p {
+    opacity: 0.5;
+    font-size: 10px;
+  }
+
+  &.inView {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }

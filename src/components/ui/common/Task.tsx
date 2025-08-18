@@ -8,7 +8,7 @@ type Task = {
   title: string;
   description: string;
   deadline: Date;
-  group: { title: string } | null;
+  group: { id: string, title: string } | null;
 };
 
 type Props = {
