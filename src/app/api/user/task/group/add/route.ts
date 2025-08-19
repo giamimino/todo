@@ -21,7 +21,7 @@ type Todo = {
   title: string; 
   description: string; 
   deadline: Date; 
-  group: Group | null 
+  groupId: string | null 
 }
 
 type User = { 
@@ -50,12 +50,7 @@ export async function POST(req: Request) {
         groupId
       },
       select: {
-        group: {
-          select: {
-            title: true,
-            id: true
-          }
-        }
+        groupId: true,
       }
     })
     if(!task) return errorResponse("Something went wrong can't task in group.");
@@ -68,8 +63,8 @@ export async function POST(req: Request) {
       const newCachedUser = {
         ...cachedUser,
         todo: cachedUser.todo.map((t) => t.id === taskId ? {
-          ...t, 
-          group: task.group
+          ...t,
+          groupId: task.groupId
         } : t)
       }
 

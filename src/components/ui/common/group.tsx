@@ -4,18 +4,19 @@ import styles from '../groups.module.scss'
 
 type Props = {
   title: string,
+  id: string,
   fill?: boolean,
-  onSelect: (group: string) => void,
-  onClick: (title: string) => void
+  onSelect: (group: string, groupId: string) => void,
+  onClick: (id: string) => void
 }
 
 export default function Group(props: Props) {
 
   function handleClick() {
     if (props.fill) {
-      props.onClick(props.title)
+      props.onClick(props.id)
     } else {
-      props.onSelect(props.title)
+      props.onSelect(props.title, props.id)
     }
   }
   

@@ -10,7 +10,7 @@ type Task = {
   title: string; 
   description: string; 
   deadline: Date; 
-  group: {id: string, title: string} | null 
+  groupId: string | null 
 }
 
 type Props = {

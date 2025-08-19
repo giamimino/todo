@@ -32,6 +32,12 @@
   }
 }
 
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 
 @keyframes enter {
  0% {

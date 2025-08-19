@@ -9,9 +9,9 @@ type Props = {
   groupTitle?: Group[]
   userId: string
   onAdd: (group: string, id: string) => void
-  onFilter: (group: string) => void
+  onFilter: (groupId: string) => void
   onError: (error: string) => void
-  onClick: (title: string) => void
+  onClick: (id: string) => void
 }
 
 export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, onClick }: Props) {
@@ -19,14 +19,14 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, o
 
   const groups = useMemo(() => {
     return [
-      { name: "AII" },
-      ...(groupTitle?.filter(g => g.title !== "AII").map(g => ({ name: g.title })) ?? [])
+      { name: "AII", id:"AII" },
+      ...(groupTitle?.filter(g => g.title !== "AII").map(g => ({ name: g.title, id: g.id })) ?? [])
     ]
   }, [groupTitle])
 
-  function handleSelect(group: string) {
+  function handleSelect(group: string,  groupId: string) {
     setPGroup(group)
-    onFilter(group)
+    onFilter(groupId)
   }
 
   return (
@@ -34,6 +34,7 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, o
       {groups.map((group) => (
         <Group
           key={group.name}
+          id={group.id}
           title={group.name}
           fill={PGroup === group.name}
           onSelect={handleSelect}

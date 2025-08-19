@@ -1,6 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import styles from './style.module.scss'
+import { useRouter } from 'next/navigation'
 
 type Props = {
   name: string,
@@ -8,6 +9,8 @@ type Props = {
 }
 
 export default function WelcomeWrapper(props: Props) {
+  const router = useRouter()
+
   return (
     <div className={styles.welcome}>
       <div>
@@ -20,6 +23,7 @@ export default function WelcomeWrapper(props: Props) {
         width={54}
         height={54}
         objectFit='cover'
+        onClick={() => router.push('/home/profile')}
       />
     </div>
   )

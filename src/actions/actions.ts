@@ -10,7 +10,7 @@ type Todo = {
   title: string,
   description: string,
   deadline: Date,
-  group: { id: string, title: string} | null
+  groupId: string | null
 }
 
 type User = {
@@ -31,7 +31,7 @@ type Task = {
   title: string;
   description: string;
   deadline: Date;
-  group: { id: string, title: string } | null;
+  groupId: string | null
 };
 
 type AddTaskSuccess = {
@@ -154,7 +154,7 @@ export async function signin(formData: FormData) {
   }
 }
 
-export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddTaskError> {
+export async function addTask(formData: FormData, groupId?: string): Promise<AddTaskSuccess | AddTaskError> {
   try {
     const title = formData.get("title") as string
     const description = formData.get("description") as string
@@ -183,14 +183,15 @@ export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddT
         title,
         description,
         deadline: deadline || new Date(),
-        user: { connect: { id: userId } }
+        user: { connect: { id: userId } },
+        ...(groupId ? { group: { connect: { id: groupId } } } : {})
       },
       select: {
         id: true,
         title: true,
         description: true,
         deadline: true,
-        group: { select: { id: true, title: true } } 
+        groupId: true,
       }
     })
 
@@ -216,7 +217,7 @@ export async function addTask(formData: FormData): Promise<AddTaskSuccess | AddT
               title: task.title,
               description: task.description,
               deadline: task.deadline,
-              group: task.group ? task.group : null
+              groupId: task.groupId || null,
             }
           ]
         }
@@ -250,7 +251,7 @@ export async function addGroup(formData: FormData, userId: string) {
     const group = await prisma.group.create({
       data: {
         title,
-        userId
+        userId,
       },
       select: {
         id: true,
@@ -272,7 +273,7 @@ export async function addGroup(formData: FormData, userId: string) {
 
       const newCachedUser: any = {
         ...cachedUser,
-        groups: [...(cachedUser.groups || []), {
+        group: [...(cachedUser.groups || []), {
           title: group.title,
           id: group.id
         }]

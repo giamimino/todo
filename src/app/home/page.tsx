@@ -13,9 +13,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 
 type Group = { id: string, title: string }
-type Todo = { id: string; title: string; description: string; deadline: Date; group: Group | null }
+type Todo = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
 type User = { id: string; name: string; profileImage: string; todo: Todo[]; group?: Group[] | null }
-type Task = { id: string; title: string; description: string; deadline: Date; group: Group | null }
+type Task = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
@@ -48,7 +48,8 @@ export default function Home() {
   }, [])
 
   const run = useMemo(() => {
-    return user?.todo.reduce((acc, num) => acc > num ? num : acc, user.todo[0])
+    return user?.todo.reduce((acc, task) => 
+     new Date(acc.deadline) > new Date(task.deadline) ? task : acc , user.todo[0]);
   }, [user])
 
   const filteredTasks = useMemo(() => {
@@ -60,13 +61,13 @@ export default function Home() {
       return user.todo
     }
 
-    return user.todo.filter(todo => todo.group?.title === selectedGroup &&
+    return user.todo.filter(todo => todo.groupId === selectedGroup &&
       todo.title.toLowerCase().includes(searchValue.toLowerCase())
     )
   }, [user, selectedGroup, searchValue])
 
   function handleAddTask(task: Task) {
-    const newTodo: Todo = { ...task, group: task.group || null }
+    const newTodo: Todo = { ...task, groupId: task.groupId || null }
     setUser(prev => prev ? { ...prev, todo: [...prev.todo, newTodo] } : prev)
   }
 
@@ -78,8 +79,8 @@ export default function Home() {
     setUser(prev => prev ? { ...prev, group: [...(prev.group || []), { title: group, id: id }] } : prev)
   }
 
-  function handleFilterGroups(group: string) {
-    setSelectedGroup(group)
+  function handleFilterGroups(groupId: string) {
+    setSelectedGroup(groupId)
   }
 
   if (loading) return <p>loading...</p>
@@ -96,29 +97,54 @@ export default function Home() {
     setSearchValue(value)
   }
 
-  function handleGroupSide(title: string) {
-    if (title !== "AII") {
-      const group = user?.group?.find(g => g.title === title);
+  function handleGroupSide(id: string) {
+    if (id !== "AII") {
+      const group = user?.group?.find(g => g.id === id);
       if (group) setIsGroupSide(group.id);
     }
   }
-
 
   function handleCloseGroupSide() {
       setIsGroupSide("")
   }
 
-  function handleGroupChange(group: {id: string, title: string}, taskId: string) {
+  function handleGroupChange(groupId: string, taskId: string) {
     setUser(prev => prev ? {
       ...prev,
       todo: prev.todo.map(t => 
         t.id === taskId ?
         {
           ...t,
-          group: {
-            id: group.id,
-            title: group.title
-          }
+          groupId: groupId
+        } : t
+      )
+    } : prev)
+  }
+
+  function handleTaskCreateInGroup(task: Task) {
+    setUser(prev => prev ? {
+      ...prev,
+      todo: [
+        ...(prev.todo || []),
+        {
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          deadline: new Date(task.deadline),
+          groupId: task.groupId
+        }
+      ]
+    } : prev)
+  }
+
+  function handleGroupRemove(taskId: string) {
+    setUser(prev => prev ? {
+      ...prev,
+      todo: prev.todo.map(t =>
+        t.id === taskId ?
+        {
+          ...t,
+          groupId: null
         } : t
       )
     } : prev)
@@ -147,10 +173,11 @@ export default function Home() {
               tasks={user.todo} 
               onDel={handleDelTask} 
               onError={handleErrorMessage} 
-              title={selectedGroup} 
               onClick={handleCloseGroupSide} 
               groupId={isGroupSide}
               onGroup={handleGroupChange}
+              onTaskCreate={handleTaskCreateInGroup}
+              onGroupDel={handleGroupRemove}
             />
           </motion.main>
         )}

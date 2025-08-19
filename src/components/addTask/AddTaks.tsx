@@ -8,7 +8,7 @@ type Task = {
   title: string;
   description: string;
   deadline: Date;
-  group: { id: string, title: string } | null;
+  groupId: string | null;
 };
 
 export default function AddTask({ onAdd, onError }: { onError: (error: string) => void, onAdd: (task: Task) => void }) {
