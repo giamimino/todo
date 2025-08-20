@@ -1,11 +1,9 @@
-@use '../../app/colors.scss' as *;
-
 .header {
   width: 100%;
   padding: 10px;
   display: flex;
   justify-content: space-between;
-  color: $SeaShell950;
+  color: var(--SeaShell-950);
   user-select: none;
 
   svg {

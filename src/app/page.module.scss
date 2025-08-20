@@ -1,17 +1,17 @@
-@use './colors.scss' as *;
-
 .page {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
+
   form {
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 60px;
-    >div {
+
+    > div {
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -23,34 +23,34 @@
         line-height: 200%;
       }
 
-      >button {
+      > button {
         width: 100%;
         padding: 15px 10px;
         font-size: 16px;
         font-weight: 700;
-        color: $SeaShell25;
+        color: var(--SeaShell-25);
         border-radius: 99px;
         cursor: pointer;
-        transition: all .4s ease;
-        
+        transition: all 0.4s ease;
+
         &[type="submit"] {
-          background-color: $BlushPink400;
-  
+          background-color: var(--BlushPink-400);
         }
-  
+
         &[type="button"] {
           background-color: #5865F2;
         }
 
         &:hover {
-          background-color: $SeaShell100;
-          color: $SeaShell950;
+          background-color: var(--SeaShell-100);
+          color: var(--SeaShell-950);
           opacity: 0.5;
         }
       }
     }
   }
-  >h1 {
+
+  > h1 {
     font-size: 32px;
     font-weight: 800;
     padding-top: 64px;

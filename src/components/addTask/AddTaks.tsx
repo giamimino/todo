@@ -25,7 +25,7 @@ export default function AddTask({ onAdd, onError }: { onError: (error: string) =
       const timeout = setTimeout(() => setShowForm(false), 1200)
       return () => clearTimeout(timeout)
     }
-  }, [isAdding])
+  }, [isAdding, showForm])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

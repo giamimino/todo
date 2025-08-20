@@ -1,23 +1,23 @@
-@use '../../app/colors.scss' as * ;
 .group {
   position: relative;
   
   button {
     padding: 10px;
     border-radius: 50%;
-    background-color: $SeaShell200;
-    transition: all .4s ease;
-    color: $SeaShell950;
+    background-color: var(--SeaShell-200);
+    transition: all 0.4s ease;
+    color: var(--SeaShell-950);
     opacity: 0.8;
     font-size: 18px;
     cursor: pointer;
     
     &:hover {
-      background-color: $BlushPink400;
-      color: $SeaShell25;
+      background-color: var(--BlushPink-400);
+      color: var(--SeaShell-25);
     }
   }
 }
+
 .task {
   position: fixed;
   bottom: 10px;
@@ -38,26 +38,24 @@
   button {
     padding: 10px;
     border-radius: 50%;
-    background-color: $BlushPink400;
-    color: $SeaShell25;
-    transition: all .4s ease;
+    background-color: var(--BlushPink-400);
+    color: var(--SeaShell-25);
+    transition: all 0.4s ease;
     font-size: 18px;
     cursor: pointer;
     
     &:hover {
-      background-color: $SeaShell200;
-      color: $SeaShell950;
+      background-color: var(--SeaShell-200);
+      color: var(--SeaShell-950);
       opacity: 0.8;
     }
   }
-  
 
-  &.shown{
+  &.shown {
     button {
       transform: rotate(45deg);
     }
   }
-
 }
 
 .form {
@@ -73,16 +71,17 @@
     min-height: 64px;
     max-height: 100px;
   }
+
   input,
   textarea {
     padding: 8px 14px;
     border-radius: 12px;
     font-size: 14px;
-    background-color: $SeaShell50;
-    border: 1.5px solid $SeaShell200;
+    background-color: var(--SeaShell-50);
+    border: 1.5px solid var(--SeaShell-200);
 
     &:focus {
-      border: 1.5px solid $SeaShell400;
+      border: 1.5px solid var(--SeaShell-400);
       outline: none;
     }
   }
@@ -91,16 +90,16 @@
     width: fit-content;
     padding: 10px;
     border-radius: 50%;
-    background-color: $BlushPink400;
-    color: $SeaShell25;
-    transition: all .4s ease;
+    background-color: var(--BlushPink-400);
+    color: var(--SeaShell-25);
+    transition: all 0.4s ease;
     font-size: 18px;
     cursor: pointer;
     margin-inline: auto;
     
     &:hover {
-      background-color: $SeaShell200;
-      color: $SeaShell950;
+      background-color: var(--SeaShell-200);
+      color: var(--SeaShell-950);
       opacity: 0.8;
     }
   }

@@ -268,10 +268,10 @@ export async function addGroup(formData: FormData, userId: string) {
     (async () => {
       const sessionId = (await cookies()).get("sessionId")?.value
       const cachedUserKey = `cachedUser:${sessionId}`
-      const cachedUser = await redis.get(cachedUserKey) as any
+      const cachedUser = await redis.get(cachedUserKey) as User
       if(!cachedUser) return
 
-      const newCachedUser: any = {
+      const newCachedUser = {
         ...cachedUser,
         group: [...(cachedUser.groups || []), {
           title: group.title,

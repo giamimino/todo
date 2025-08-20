@@ -1,9 +1,7 @@
-@use '../../app/colors.scss' as * ;
-
 .button {
   padding: 10px 20px;
-  background-color: $SeaShell100;
-  color: $SeaShell950;
+  background-color: var(--SeaShell-100);
+  color: var(--SeaShell-950);
   border-radius: 20px;
   cursor: pointer;
   >h1 {
@@ -12,8 +10,8 @@
   }
 
   &.fill {
-    background-color: $BlushPink400;
-    color: $SeaShell25;
+    background-color: var(--BlushPink-400);
+    color: #FFFFFF;
     >h1 {
       opacity: 1;
     }

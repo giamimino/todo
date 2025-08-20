@@ -10,6 +10,7 @@ import Groups from '@/components/ui/groups'
 import Error from '@/components/ui/common/error'
 import GroupSide from '@/components/group/Group'
 import { AnimatePresence, motion } from 'framer-motion'
+import Settings from '@/components/settings/Settings'
 
 
 type Group = { id: string, title: string }
@@ -24,11 +25,14 @@ export default function Home() {
   const [selectedGroup, setSelectedGroup] = useState("AII")
   const [searchValue, setSearchValue] = useState("")
   const [isGroupSide, setIsGroupSide] = useState("")
-  
+  const [isSettings, setIsSettings] = useState(false)
+  const [gTheme, setGTheme] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
-
+    const theme = localStorage.getItem('theme') === "dark" ? true : false
+    theme && document.body.classList.toggle('dark-mode');
+    theme && setGTheme(true)
     fetch('/api/user/get', { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
@@ -104,8 +108,9 @@ export default function Home() {
     }
   }
 
-  function handleCloseGroupSide() {
+  function handleGetBack() {
       setIsGroupSide("")
+      setIsSettings(false)
   }
 
   function handleGroupChange(groupId: string, taskId: string) {
@@ -150,9 +155,42 @@ export default function Home() {
     } : prev)
   }
 
+  function handleSettings() {
+    setIsSettings(true)
+  }
+
+  function handleThemeChange(theme: string) {
+    document.body.classList.toggle('dark-mode')
+    setGTheme(theme === 'dark' ? true : false)
+    localStorage.setItem('theme', theme)
+  }
+
   return (
     <div className={styles.page}>
       {error !== "" && <Error error={error} />}
+      <AnimatePresence>
+        {isSettings && (
+          <motion.main
+            initial={{ x: "200%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "200%" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            style={{
+              position: "fixed",
+              top: 0,
+              height: "100%",
+              width: "100%",
+              zIndex: 9999,
+            }}
+          >
+           <Settings
+              getBack={handleGetBack} 
+              onThemeChange={handleThemeChange}
+              theme={gTheme}
+            />
+          </motion.main>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {isGroupSide !== "" && (
           <motion.main
@@ -173,7 +211,7 @@ export default function Home() {
               tasks={user.todo} 
               onDel={handleDelTask} 
               onError={handleErrorMessage} 
-              onClick={handleCloseGroupSide} 
+              onClick={handleGetBack} 
               groupId={isGroupSide}
               onGroup={handleGroupChange}
               onTaskCreate={handleTaskCreateInGroup}
@@ -184,7 +222,9 @@ export default function Home() {
       </AnimatePresence>
 
 
-      <Header />
+      <Header
+        getSettings={handleSettings}
+      />
       <WelcomeWrapper
         name={user.name || ""}
         iamge={user.profileImage === 'user' ? '/user.webp' : user.profileImage}

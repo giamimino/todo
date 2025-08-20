@@ -3,7 +3,13 @@ import styles from '../addTask/style.module.scss'
 import { Icon } from '@iconify/react'
 import { addGroup } from '@/actions/actions'
 
-export default function ({ userId, onAdd, onError }: { onError: (error: string) => void,userId: string, onAdd: (group: string, id: string) => void }) {
+type Props = {
+  onError: (error: string) => void,
+  userId: string, 
+  onAdd: (group: string, id: string) => void
+}
+
+export default function AddGroup({ userId, onAdd, onError }: Props) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -17,7 +23,7 @@ export default function ({ userId, onAdd, onError }: { onError: (error: string) 
       const timeout = setTimeout(() => setShowForm(false), 1200)
       return () => clearTimeout(timeout)
     }
-  }, [isAdding])
+  }, [isAdding, showForm])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

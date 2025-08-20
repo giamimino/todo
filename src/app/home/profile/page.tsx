@@ -3,17 +3,19 @@ import React, { useEffect, useState } from 'react'
 import styles from './page.module.scss'
 import { Icon } from '@iconify/react'
 import { useRouter } from 'next/navigation'
+import Profile from '@/components/profile/profile'
+import Statistic from '@/components/profile/statistic/statistic'
 
 type Group = { id: string, title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
 type User = { id: string; name: string; profileImage: string; todo: Todo[]; group?: Group[] | null }
-type Task = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
 
 export default function page() {
   const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   const route = useRouter()
+
   useEffect(() => {
       const controller = new AbortController()
   
@@ -22,6 +24,7 @@ export default function page() {
         .then(data => {
           if (data.success) {
             setUser(data.user)
+            
           } else {
             setError("Something went wrong")
           }
@@ -49,6 +52,14 @@ export default function page() {
         <h1>Profile</h1>
         <span></span>
       </header>
+      <Profile
+        image={user.profileImage === 'user' ? '/user.webp' : user.profileImage}
+        name={user.name}
+      />
+      <Statistic
+        curTotal={user.todo.length}
+        total={user.todo.length}
+      />
     </div>
   )
 }

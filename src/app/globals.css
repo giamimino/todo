@@ -1,8 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFF3FF;
-  --foreground: #0C0C0C;
+  /* BlushPink */
+  --BlushPink-50: #FFF3FF;
+  --BlushPink-100: #FFE7FF;
+  --BlushPink-200: #FECEFF;
+  --BlushPink-300: #FFA7FC;
+  --BlushPink-400: #FF73FA;
+  --BlushPink-500: #F73EF0;
+  --BlushPink-600: #DB1ED0;
+  --BlushPink-700: #B615A9;
+  --BlushPink-800: #951389;
+  --BlushPink-900: #79166D;
+  --BlushPink-950: #510148;
+
+  /* SeaShell */
+  --SeaShell-25: #FFFFFF;
+  --SeaShell-50: #F7F8F8;
+  --SeaShell-100: #F0F1F2;
+  --SeaShell-200: #D9DCDE;
+  --SeaShell-300: #B8BDC1;
+  --SeaShell-400: #919A9F;
+  --SeaShell-500: #737D84;
+  --SeaShell-600: #5D666C;
+  --SeaShell-700: #4C5358;
+  --SeaShell-800: #373B40;
+  --SeaShell-900: #121212;
+  --SeaShell-950: #0C0C0C;
 }
 
 * {
@@ -10,8 +34,24 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--SeaShell-50);
+  color: var(--SeaShell-950);
   padding: 10px 20px;
   overflow-x: hidde !important;
 }
+
+body.dark-mode {
+  --SeaShell-900: #FFFFFF;
+  --SeaShell-950: #F7F8F8;
+  --SeaShell-800: #F0F1F2;
+  --SeaShell-700: #D9DCDE;
+  --SeaShell-600: #B8BDC1;
+  --SeaShell-500: #919A9F;
+  --SeaShell-400: #737D84;
+  --SeaShell-300: #5D666C;
+  --SeaShell-200: #4C5358;
+  --SeaShell-100: #373B40;
+  --SeaShell-25: #121212;
+  --SeaShell-50: #0C0C0C;
+}
+

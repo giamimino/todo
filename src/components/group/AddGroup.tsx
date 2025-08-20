@@ -28,13 +28,13 @@ type PropsTask = {
   onClick: (taskId: string) => void,
 }
 
-export default function AddTaskToGroup({ userId, groupId, tasks, addTask }: Props) {
+export default function AddTaskToGroup({ tasks, addTask }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [searchValue, setSearchValue] = useState('')  
 
   const filteredTasks = useMemo(() => {
       return tasks.filter((task) => task.title.toLowerCase().includes(searchValue.toLowerCase()))
-  }, [searchValue])
+  }, [searchValue, tasks])
 
   function handleClick(taskId: string) {
     setShowForm(false)
