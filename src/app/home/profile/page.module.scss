@@ -12,3 +12,31 @@
     }
   }
 }
+
+.group {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 5px;
+  width: 100%;
+  color: var(--SeaShell-950);
+
+  >h1 {
+    line-height: 200%;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  >div {
+    cursor: pointer;
+    padding: 17px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-radius: 15px;
+    background-color: var(--SeaShell-25);
+
+    >h1 { font-size: 12px; font-weight: 900; }
+    >p {font-size: 10px; opacity: 0.5; }
+  }
+}

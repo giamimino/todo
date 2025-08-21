@@ -11,6 +11,7 @@ import Error from '@/components/ui/common/error'
 import GroupSide from '@/components/group/Group'
 import { AnimatePresence, motion } from 'framer-motion'
 import Settings from '@/components/settings/Settings'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 
 type Group = { id: string, title: string }
@@ -27,8 +28,11 @@ export default function Home() {
   const [isGroupSide, setIsGroupSide] = useState("")
   const [isSettings, setIsSettings] = useState(false)
   const [gTheme, setGTheme] = useState(false)
-
+  const searchParam = useSearchParams()
+  const router = useRouter()
+  
   useEffect(() => {
+    searchParam.get('g') && setIsGroupSide(searchParam.get('g') as string)
     const controller = new AbortController()
     const theme = localStorage.getItem('theme') === "dark" ? true : false
     theme && document.body.classList.toggle('dark-mode');
@@ -111,6 +115,9 @@ export default function Home() {
   function handleGetBack() {
       setIsGroupSide("")
       setIsSettings(false)
+      const url = new URL(window.location.href);
+      url.searchParams.delete('g');
+      router.replace(url.toString(), undefined);
   }
 
   function handleGroupChange(groupId: string, taskId: string) {

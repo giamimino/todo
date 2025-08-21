@@ -1,63 +1,51 @@
 'use client'
 import InputForm from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import styles from './page.module.scss';
 import { signin, signup } from "@/actions/actions";
+
+const Modal = lazy(() => import('./Modal'))
 
 export default function Home() {
   const [auth, setAuth] = useState(false)
   const [error, setError] = useState("")
+  const [showModal, setShowModal] = useState(false)
   const router = useRouter()
 
-  async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-
-    const formData = new FormData(e.currentTarget)
-    const result = await signup(formData)
-
-    if(result.success) {
-      router.push('/home')
-      setError("")
-    } else {
-      if(!result.success) {
-        setError(result.message || "Something went wrong.")
-      }
-    }
+  async function handleAuth(
+    e: React.FormEvent<HTMLFormElement>,
+    action: (data: FormData) => Promise<{ success: boolean, message?: string }>
+  ) {
+    e.preventDefault();
+    openModal();
+    const result = await action(new FormData(e.currentTarget));
+    if(result.success) router.push('/home');
+    else setError(result.message || "Something went wrong.");
   }
 
-    async function handleSignin(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
 
-    const formData = new FormData(e.currentTarget)
-    const result = await signin(formData)
-
-    if(result.success) {
-      router.push('/home')
-      setError("")
-    } else {
-      if(!result.success) {
-        setError(result.message || "Something went wrong.")
-      }
-    }
+  const openModal = () => {
+    setShowModal(true)
   }
+
+  const SignInFields = React.memo(() => (
+    <>
+      <InputForm name="username" placeholder="Username" icon="solar:user-outline" />
+      <InputForm name="password" placeholder="Password" icon="solar:key-minimalistic-outline" />
+    </>
+  ))
+
+
+  const action = auth ? signin : signup;
 
   return (
     <div className={styles.page}>
       <h1>TODO</h1>
       {auth ?
-      <form onSubmit={handleSignin}>
+      <form onSubmit={e => handleAuth(e, action)}>
         <div>
-          <InputForm
-            name="username"
-            placeholder="Username"
-            icon="solar:user-outline"
-          />
-          <InputForm
-            name="password"
-            placeholder="Password"
-            icon="solar:key-minimalistic-outline"
-          />
+          <SignInFields />
         </div>
         <div>
           <button type="submit">Sign in</button>
@@ -66,23 +54,14 @@ export default function Home() {
           <p>{"Don't"} have an account? <button type="button" onClick={() => setAuth(false)} className='cursor-pointer'>Sign up</button></p>
         </div>
       </form> :
-      <form onSubmit={handleSignup}>
+      <form onSubmit={e => handleAuth(e, action)}>
         <div>
           <InputForm
             name="email"
             placeholder="Email"
             icon="line-md:email"
           />
-          <InputForm
-            name="username"
-            placeholder="Username"
-            icon="solar:user-outline"
-          />
-          <InputForm
-            name="password"
-            placeholder="Password"
-            icon="solar:key-minimalistic-outline"
-          />
+          <SignInFields />
         </div>
         <div>
           <button type="submit">Sign up</button>
@@ -94,6 +73,11 @@ export default function Home() {
       }
 
       {error && <p className="text-[tomato]">{error}</p>}
+      {showModal && (
+        <Suspense fallback={null}>
+          <Modal visible={showModal} />
+        </Suspense>
+      )}
     </div>
   );
 }
