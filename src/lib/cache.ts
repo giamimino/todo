@@ -21,6 +21,7 @@ export const getUser = cache(async () => {
       profileImage: true,
       todo: { select: { id: true, title: true, description: true, deadline: true, groupId: true } },
       group: { select: { id: true, title: true } },
+      favorite: { select: { id: true, todoId: true }}
     },
   });
 

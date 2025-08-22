@@ -12,9 +12,10 @@ type Props = {
   onFilter: (groupId: string) => void
   onError: (error: string) => void
   onClick: (id: string) => void
+  isFavorite: boolean
 }
 
-export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, onClick }: Props) {
+export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, onClick, isFavorite }: Props) {
   const [PGroup, setPGroup] = useState('AII')
 
   const groups = useMemo(() => {
@@ -41,6 +42,16 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, o
           onClick={onClick}
         />
       ))}
+      {isFavorite && (
+        <Group
+          key={'favorite-group'}
+          title='Favorites'
+          id={'Favorites'}
+          fill={PGroup === 'Favorites'}
+          onSelect={handleSelect}
+          onClick={onClick}
+        />
+      )}
       <AddGroup
         userId={userId}
         onAdd={onAdd}

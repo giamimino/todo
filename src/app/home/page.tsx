@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 type Group = { id: string, title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
-type User = { id: string; name: string; profileImage: string; todo: Todo[]; group?: Group[] | null }
+type User = { id: string; name: string; profileImage: string; todo: Todo[]; group?: Group[] | null, favorite?: { id:string, todoId: string }[] | null }
 type Task = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
 
 export default function Home() {
@@ -63,15 +63,19 @@ export default function Home() {
   const filteredTasks = useMemo(() => {
     if (!user) return []
     if(searchValue !== "") {
-      return user.todo.filter((task) => task.title.toLowerCase().includes(searchValue.toLowerCase()))
+      return user.todo.filter((task) => task.title.toLowerCase().includes(searchValue.toLowerCase())) ?? []
     }
     if (selectedGroup === "AII") {
-      return user.todo
+      return user.todo ?? []
+    }
+    if(selectedGroup === "Favorites") {
+      const favIds = new Set(user.favorite?.map(fav => fav.todoId))
+      return user.todo.filter(
+        (t) => favIds.has(t.id)
+      ) ?? []
     }
 
-    return user.todo.filter(todo => todo.groupId === selectedGroup &&
-      todo.title.toLowerCase().includes(searchValue.toLowerCase())
-    )
+    return user.todo?.filter(todo => todo.groupId === selectedGroup) ?? []
   }, [user, selectedGroup, searchValue])
 
   function handleAddTask(task: Task) {
@@ -149,7 +153,7 @@ export default function Home() {
     } : prev)
   }
 
-  function handleGroupRemove(taskId: string) {
+  function handleGroupTaskRemove(taskId: string) {
     setUser(prev => prev ? {
       ...prev,
       todo: prev.todo.map(t =>
@@ -170,6 +174,35 @@ export default function Home() {
     document.body.classList.toggle('dark-mode')
     setGTheme(theme === 'dark' ? true : false)
     localStorage.setItem('theme', theme)
+  }
+
+  function handleGroupRemove(groupId: string) {
+    setSelectedGroup('AII')
+    setUser(prev => prev ? {
+      ...prev,
+      group: prev.group?.filter(
+        (g) => g.id !== groupId
+      )
+    } : prev)
+  }
+
+  function handleAddFavorite(taskId: string, favoriteId: string) {
+    setUser(prev => prev ? {
+      ...prev,
+      favorite: [...(prev.favorite || []), {
+        id: favoriteId,
+        todoId: taskId,
+      }]
+    } : prev)
+  }
+
+  function handleRemoveFavorite(taskId: string) {
+    setUser(prev => prev ? {
+      ...prev,
+      favorite: prev.favorite?.filter(
+        (f) => f.todoId !== taskId
+      )
+    } : prev)
   }
 
   return (
@@ -222,7 +255,11 @@ export default function Home() {
               groupId={isGroupSide}
               onGroup={handleGroupChange}
               onTaskCreate={handleTaskCreateInGroup}
-              onGroupDel={handleGroupRemove}
+              onGroupTaskDel={handleGroupTaskRemove}
+              onGroulDel={handleGroupRemove}
+              removeFavorite={handleRemoveFavorite}
+              addFavorite={handleAddFavorite}
+              favorites={user.favorite || []}
             />
           </motion.main>
         )}
@@ -248,6 +285,9 @@ export default function Home() {
             onDel={handleDelTask}
             delay={0}
             onError={handleErrorMessage}
+            favoriteId={user.favorite?.find(fav => fav.todoId === run.id)?.id || ''}
+            addFavorite={handleAddFavorite}
+            removeFavorite={handleRemoveFavorite}
           />
         </div>
       }
@@ -261,9 +301,10 @@ export default function Home() {
         onFilter={handleFilterGroups}
         onError={handleErrorMessage}
         onClick={handleGroupSide}
+        isFavorite={user.favorite?.length ? true : false}
       />
       <main>
-        {filteredTasks!.map((task, index) => (
+        {filteredTasks.map((task, index) => (
           <Task
             key={task.id}
             title={task.title}
@@ -274,6 +315,9 @@ export default function Home() {
             id={task.id}
             onDel={handleDelTask}
             onError={handleErrorMessage}
+            favoriteId={user.favorite?.find(fav => fav.todoId === task.id)?.id || ''}
+            addFavorite={handleAddFavorite}
+            removeFavorite={handleRemoveFavorite}
           />
         ))}
       </main>

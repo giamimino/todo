@@ -19,6 +19,7 @@ type User = {
   profileImage: string,
   todo: Todo[],
   groups: Groups[]
+  favorite: {id: string, todoId: string}[] | null
 }
 
 type Groups = {
@@ -70,7 +71,7 @@ export async function signup(formData: FormData) {
     if(!user) {
       return {
         success: false,
-        message: "User can't be created"
+        message: "User can't be created."
       }
     }
 
@@ -198,7 +199,7 @@ export async function addTask(formData: FormData, groupId?: string): Promise<Add
     if(!task) {
       return {
         success: false,
-        message: "Task can't be created"
+        message: "Task can't be created."
       }
     }
 
@@ -261,7 +262,7 @@ export async function addGroup(formData: FormData, userId: string) {
     if(!group) {
       return {
         success: false,
-        message: "Group can't be created"
+        message: "Group can't be created."
       }
     }
 
@@ -285,6 +286,136 @@ export async function addGroup(formData: FormData, userId: string) {
     return {
       success: true,
       group
+    }
+  }catch(err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong."
+    }
+  }
+}
+
+export async function GroupRemove(groupId: string) {
+  try {
+    const group = await prisma.group.delete({
+      where: { id: groupId },
+      select: {
+        id: true,
+      }
+    })
+
+    if(!group) {
+      return {
+        success: false,
+        message: "Group can't be deleted."
+      }
+    };
+
+    (async () => {
+      const sessionId = (await cookies()).get("sessionId")?.value
+      const cachedUserKey = `cachedUser:${sessionId}`
+      const cachedUser = await redis.get(cachedUserKey) as User
+      if(!cachedUser) return
+
+      const newCachedUser = cachedUser.groups.filter(
+        (g) => g.id !== group.id
+      )
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+    })();
+
+    return {
+      success: true,
+      groupId: group.id
+    }
+
+  }catch (err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong."
+    }
+  }
+}
+
+export async function addFavorite(taskId: string, userId: string) {
+  try {
+    const favorite = await prisma.favorite.create({
+      data: {
+        user: { connect: { id: userId } },
+        todo: { connect: { id: taskId } },
+      },
+      select: {
+        id: true,
+        todoId: true,
+      }
+    })
+
+    if(!favorite) {
+      return {
+        success: false,
+        messagee: "Task can't be added in favorites.",
+      }
+    }
+
+    (async () => {
+      const sessionId = (await cookies()).get("sessionId")?.value
+      const cachedUserKey = `cachedUser:${sessionId}`
+      const cachedUser = await redis.get(cachedUserKey) as User
+      if(!cachedUser) return
+
+      const newCachedUser = {
+        ...cachedUser,
+        favorite: [...(cachedUser.favorite || []), favorite]
+      }
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+    })();
+
+    return {
+      success: true,
+      favorite
+    }
+  }catch(err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong."
+    }
+  }
+}
+
+export async function removeFavorite(favoriteId: string) {
+  try {
+    const favorite = await prisma.favorite.delete({
+      where: { id: favoriteId },
+      select: { id: true }
+    })
+
+    if(!favorite) {
+      return {
+        success: false,
+        messagee: "Task can't be removed from favorites.",
+      }
+    }
+
+    (async () => {
+      const sessionId = (await cookies()).get("sessionId")?.value
+      const cachedUserKey = `cachedUser:${sessionId}`
+      const cachedUser = await redis.get(cachedUserKey) as User
+      if(!cachedUser) return
+
+      const newCachedUser = {
+        ...cachedUser,
+        favorite: cachedUser.favorite?.filter(
+          (f) => f.id !== favorite.id
+        )
+      }
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+    })();
+
+    return {
+      success: true,
+      favorite
     }
   }catch(err) {
     console.log(err);

@@ -5,6 +5,8 @@ import { Icon } from '@iconify/react'
 import { useRouter } from 'next/navigation'
 import Profile from '@/components/profile/profile'
 import Statistic from '@/components/profile/statistic/statistic'
+import { AnimatePresence, motion } from 'framer-motion'
+import { addGroup } from '@/actions/actions'
 
 type Group = { id: string, title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
@@ -20,11 +22,13 @@ export default function page() {
   const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const controller = new AbortController()
-
+    const theme = localStorage.getItem('theme') === "dark" ? true : false
+    theme && document.body.classList.toggle('dark-mode');
     fetch('/api/user/get', { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
@@ -45,30 +49,26 @@ export default function page() {
   }, [])
   
   const groups = useMemo(() => {
-    if(!user?.group) return []
-    const groups: { groupTitle: string; tasks: number, id: string }[] = []
-    for(let i = 0; i < user.group.length; i++) {
-      for(let k = 0; k < user.todo.length; k++) {
-        if(user.group[i].id === user.todo[k].groupId) {
-          const existingGroup = groups.find(
-            (g) => g.id === user.group![i].id
-          )
+    if (!user?.group) return []
 
-          if(existingGroup) {
-            existingGroup.tasks += 1
-          } else {
-            groups.push({
-              groupTitle: user.group[i].title,
-              tasks: 1,
-              id: user.group[i].id
-            });
-          }
-        }
+    const result: { groupTitle: string; tasks: number; id: string }[] =
+      user.group.map((g) => ({
+        groupTitle: g.title,
+        tasks: 0,
+        id: g.id,
+      }))
+
+      for (let i = 0; i < user.todo.length; i++) {
+        const todo = user.todo[i]
+        if (!todo.groupId) continue
+
+        const group = result.find((g) => g.id === todo.groupId)
+        if (group) group.tasks += 1
       }
-    }
 
-    return groups;
+    return result
   }, [user])
+
 
   if (loading) return <p>loading...</p>
   if (!user) return <p>{error}</p>
@@ -77,6 +77,28 @@ export default function page() {
   function handleGroupSide(groupId: string) {
     router.push(`/home?g=${groupId}`)
   }
+
+  async function handleSubmitGroup(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    const formData = new FormData(e.currentTarget)
+    const result = await addGroup(formData, user!.id)
+
+    if(result.success) {
+      setUser(prev => prev ? {
+        ...prev,
+        group: [...(prev.group || []), result.group as Group],
+      } : prev)
+
+      setShowForm(false)
+    } else {
+      if(!result.success) {
+        alert(result.message)
+      }
+    }
+  }
+
+  
 
   return (
     <div className={styles.page}>
@@ -99,16 +121,58 @@ export default function page() {
       />
       <div className={styles.group}>
         <h1>Group</h1>
-          {groups.map((g) => (
-            <Group 
+        <AnimatePresence>
+          {groups.map((g, index) => (
+            <motion.div
               key={g.id}
-              title={g.groupTitle}
-              tasks={g.tasks}
-              onClick={handleGroupSide}
-              id={g.id}
-            />
-          )) }
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40, }}
+              transition={{ delay: index / 10, duration: 0.6,}}
+            >
+              <Group
+                title={g.groupTitle}
+                tasks={g.tasks}
+                onClick={handleGroupSide}
+                id={g.id}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+          <button onClick={() => setShowForm(prev => !prev)}>
+            <Icon icon="material-symbols:add-rounded" />
+          </button>
       </div>
+      <AnimatePresence>
+        {showForm && (
+          <motion.form
+            className={styles.form}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onSubmit={handleSubmitGroup}
+          >
+            <motion.input
+              placeholder="Title"
+              name="title"
+              type="text"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            />
+
+            <motion.button
+              type='submit'
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Icon icon={'formkit:submit'} />
+            </motion.button>
+          </motion.form>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

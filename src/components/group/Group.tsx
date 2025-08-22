@@ -4,7 +4,7 @@ import Task from '../ui/common/Task';
 import { useMemo, useState } from 'react';
 import AddTaskToGroup from './AddGroup';
 import { AnimatePresence, motion } from 'framer-motion';
-import { addTask } from '@/actions/actions';
+import { addTask, GroupRemove } from '@/actions/actions';
 
 type Task = { 
   id: string; 
@@ -23,7 +23,11 @@ type Props = {
   tasks: Task[]
   onGroup: ( groupId: string, taskId: string ) => void
   onTaskCreate: (task: Task) => void,
-  onGroupDel: ( taskId: string ) => void
+  onGroupTaskDel: ( taskId: string ) => void
+  onGroulDel: ( groupId: string ) => void
+  addFavorite: (taskId: string, favoriteId: string) => void
+  removeFavorite: (taskId: string) => void,
+  favorites?: {id: string, todoId: string}[] | null
 }
 
 export default function GroupSide(props: Props) {
@@ -33,9 +37,6 @@ export default function GroupSide(props: Props) {
   const filteredTasks = useMemo(() => {
     return props.tasks.filter(task => task.groupId === props.groupId);
   }, [props.tasks, props.groupId]);
-
-
-
 
   function handleSubmitEditTodo(taskId: string) {
     fetch('/api/user/task/group/add', {
@@ -78,11 +79,25 @@ export default function GroupSide(props: Props) {
     }).then(res => res.json())
     .then(data => {
       if(data.success) {
-        props.onGroupDel(taskId)
+        props.onGroupTaskDel(taskId)
       } else if(!data.success) {
         props.onError(data.message)
       }
     })
+  }
+
+  async function handleGroupRemove() {
+
+    const result = await GroupRemove(props.groupId)
+    
+    if(result.success) {
+      props.onGroulDel(result.groupId || '')
+      props.onClick()
+    } else {
+      if(!result.success) {
+        props.onError(result.message || 'Something went wrong.')
+      }
+    }
   }
 
   return (
@@ -111,6 +126,9 @@ export default function GroupSide(props: Props) {
                 isRun={false}
                 onDel={props.onDel}
                 onError={props.onError}
+                addFavorite={props.addFavorite}
+                removeFavorite={props.removeFavorite}
+                favoriteId={props.favorites?.find(f => f.todoId === task.id)?.id || ''}
               />
               <button onClick={() => handleRemove(task.id)}>
                 <Icon icon={'mingcute:close-fill'} />
@@ -138,7 +156,7 @@ export default function GroupSide(props: Props) {
         </div>
       </div>
       <aside>
-        <button><Icon icon={'solar:share-circle-bold'} /></button>
+        <button onClick={() => handleGroupRemove()} ><Icon icon={'solar:trash-bin-minimalistic-linear'} /></button>
         <button onClick={() => setIsControl(prev => !prev)}><Icon icon={'majesticons:edit-pen-2-line'} /></button>
         <button data-hovered onClick={() => setShowForm(prev => !prev)}><Icon icon="material-symbols:add-rounded" /></button>
       </aside>

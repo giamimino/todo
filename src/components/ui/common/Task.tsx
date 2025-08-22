@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import styles from './task.module.scss'
 import { Icon } from '@iconify/react/dist/iconify.js'
+import { addFavorite, removeFavorite } from '@/actions/actions';
 
 type Task = {
   id: string,
@@ -20,6 +21,9 @@ type Props = {
   userId: string,
   onDel: (taskId: string) => void
   onError: (error: string) => void
+  addFavorite: (taskId: string, favoriteId: string) => void
+  removeFavorite: (taskId: string) => void,
+  favoriteId: string,
 }
 
 
@@ -64,6 +68,25 @@ export default function Task(props: Props) {
     })
   }
 
+  async function handleFavorite() {
+    if (props.favoriteId === '') {
+      const result = await addFavorite(props.id, props.userId)
+      if (result.success) {
+        props.addFavorite(result.favorite!.todoId, result.favorite!.id)
+        setIsEdit(false)
+      } else {
+        props.onError(result.message || 'Something went wrong.')
+      }
+    } else {
+      const result = await removeFavorite(props.favoriteId)
+      if (result.success) {
+        props.removeFavorite(props.id)
+        setIsEdit(false)
+      } else {
+        props.onError(result.message || 'Something went wrong.')
+      }
+    }
+  }
 
   return (
     <>
@@ -79,11 +102,14 @@ export default function Task(props: Props) {
         ${inView ? styles.inView : ''} 
         ${props.isRun ? styles.run : ''}`} 
         onClick={() => setIsEdit(prev => !prev)}>
-          <h1>{props.title}</h1>
-          <p>{props.description}</p>
+          <div>
+            <h1>{props.title}</h1>
+            <p>{props.description}</p>
+          </div>
+          {props.favoriteId !== '' && <Icon icon={'solar:star-bold'} /> }
         </div>
         <aside className={`${styles.edit} ${isEdit ? styles.inEdit : ''}`}>
-          <button><span>Remove favorite</span><Icon icon={'solar:star-line-duotone'} /></button>
+          <button onClick={handleFavorite}><span>{props.favoriteId === '' ? 'Add favorite' :'Remove favorite'}</span><span className={props.favoriteId !== '' ? styles.remove : ''}><Icon  icon={'solar:star-line-duotone'} /></span></button>
           <button><span>Remind me</span><Icon icon={'mage:calendar-3'} /></button>
           <button onClick={handleDelete}><span>Remove</span><Icon icon={'solar:trash-bin-minimalistic-linear'} /></button>
         </aside>
