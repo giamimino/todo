@@ -1,7 +1,7 @@
 'use client'
 import Header from '@/components/header/header'
 import WelcomeWrapper from '@/components/ui/welcome/WelcomeWrapper'
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import styles from './page.module.scss'
 import AddTask from '@/components/addTask/AddTaks'
 import Task from '@/components/ui/common/Task'
@@ -69,7 +69,7 @@ export default function Home() {
       return user.todo ?? []
     }
     if(selectedGroup === "Favorites") {
-      const favIds = new Set(user.favorite?.map(fav => fav.todoId))
+      const favIds = new Set((user.favorite ?? []).map(fav => fav.todoId))
       return user.todo.filter(
         (t) => favIds.has(t.id)
       ) ?? []
@@ -78,22 +78,22 @@ export default function Home() {
     return user.todo?.filter(todo => todo.groupId === selectedGroup) ?? []
   }, [user, selectedGroup, searchValue])
 
-  function handleAddTask(task: Task) {
+  const handleAddTask = useCallback((task: Task) => {
     const newTodo: Todo = { ...task, groupId: task.groupId || null }
     setUser(prev => prev ? { ...prev, todo: [...prev.todo, newTodo] } : prev)
-  }
+  }, [])
 
-  function handleDelTask(taskId: string) {
+  const handleDelTask = useCallback((taskId: string) => {
     setUser(prev => prev ? { ...prev, todo: prev.todo.filter(t => t.id !== taskId) } : prev)
-  }
+  }, [])
 
-  function handleAddGroup(group: string, id: string) {
+  const handleAddGroup = useCallback((group: string, id: string) => {
     setUser(prev => prev ? { ...prev, group: [...(prev.group || []), { title: group, id: id }] } : prev)
-  }
+  }, [])
 
-  function handleFilterGroups(groupId: string) {
+  const handleFilterGroups = useCallback((groupId: string) => {
     setSelectedGroup(groupId)
-  }
+  }, [])
 
   if (loading) return <p>loading...</p>
   if (!user) return <p>{error}</p>
@@ -109,22 +109,22 @@ export default function Home() {
     setSearchValue(value)
   }
 
-  function handleGroupSide(id: string) {
+  const handleGroupSide = useCallback((id: string) => {
     if (id !== "AII") {
       const group = user?.group?.find(g => g.id === id);
       if (group) setIsGroupSide(group.id);
     }
-  }
+  }, [])
 
-  function handleGetBack() {
+  const handleGetBack = useCallback(() => {
       setIsGroupSide("")
       setIsSettings(false)
       const url = new URL(window.location.href);
       url.searchParams.delete('g');
       router.replace(url.toString(), undefined);
-  }
+  }, [])
 
-  function handleGroupChange(groupId: string, taskId: string) {
+  const handleGroupChange = useCallback((groupId: string, taskId: string) => {
     setUser(prev => prev ? {
       ...prev,
       todo: prev.todo.map(t => 
@@ -135,9 +135,9 @@ export default function Home() {
         } : t
       )
     } : prev)
-  }
+  }, [])
 
-  function handleTaskCreateInGroup(task: Task) {
+  const handleTaskCreateInGroup = useCallback((task: Task) => {
     setUser(prev => prev ? {
       ...prev,
       todo: [
@@ -151,9 +151,9 @@ export default function Home() {
         }
       ]
     } : prev)
-  }
+  }, [])
 
-  function handleGroupTaskRemove(taskId: string) {
+  const handleGroupTaskRemove = useCallback((taskId: string) => {
     setUser(prev => prev ? {
       ...prev,
       todo: prev.todo.map(t =>
@@ -164,11 +164,11 @@ export default function Home() {
         } : t
       )
     } : prev)
-  }
+  }, [])
 
-  function handleSettings() {
+  const handleSettings = useCallback(() => {
     setIsSettings(true)
-  }
+  }, [])
 
   function handleThemeChange(theme: string) {
     document.body.classList.toggle('dark-mode')
@@ -176,7 +176,7 @@ export default function Home() {
     localStorage.setItem('theme', theme)
   }
 
-  function handleGroupRemove(groupId: string) {
+  const handleGroupRemove = useCallback((groupId: string) => {
     setSelectedGroup('AII')
     setUser(prev => prev ? {
       ...prev,
@@ -184,9 +184,9 @@ export default function Home() {
         (g) => g.id !== groupId
       )
     } : prev)
-  }
+  }, [])
 
-  function handleAddFavorite(taskId: string, favoriteId: string) {
+  const handleAddFavorite = useCallback((taskId: string, favoriteId: string) => {
     setUser(prev => prev ? {
       ...prev,
       favorite: [...(prev.favorite || []), {
@@ -194,16 +194,16 @@ export default function Home() {
         todoId: taskId,
       }]
     } : prev)
-  }
+  }, [])
 
-  function handleRemoveFavorite(taskId: string) {
+  const handleRemoveFavorite = useCallback((taskId: string) => {
     setUser(prev => prev ? {
       ...prev,
       favorite: prev.favorite?.filter(
         (f) => f.todoId !== taskId
       )
     } : prev)
-  }
+  }, [])
 
   return (
     <div className={styles.page}>
