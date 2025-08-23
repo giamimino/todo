@@ -1,10 +1,12 @@
 import { Icon } from '@iconify/react/dist/iconify.js';
 import styles from './style.module.scss'
 import Task from '../ui/common/Task';
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import AddTaskToGroup from './AddGroup';
 import { AnimatePresence, motion } from 'framer-motion';
 import { addTask, GroupRemove } from '@/actions/actions';
+import React from 'react';
+import { TaskContext } from '@/app/context/TaskContext';
 
 type Task = { 
   id: string; 
@@ -20,7 +22,6 @@ type Props = {
   onError: ( error: string ) => void
   onClick: () => void
   groupId: string,
-  tasks: Task[]
   onGroup: ( groupId: string, taskId: string ) => void
   onTaskCreate: (task: Task) => void,
   onGroupTaskDel: ( taskId: string ) => void
@@ -30,13 +31,14 @@ type Props = {
   favorites?: {id: string, todoId: string}[] | null
 }
 
-export default function GroupSide(props: Props) {
+function GroupSide(props: Props) {
   const [isControl, setIsControl] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const tasks = useContext(TaskContext) || []
 
   const filteredTasks = useMemo(() => {
-    return props.tasks.filter(task => task.groupId === props.groupId);
-  }, [props.tasks, props.groupId]);
+    return (tasks || []).filter(task => task.groupId === props.groupId);
+  }, [tasks, props.groupId]);
 
   function handleSubmitEditTodo(taskId: string) {
     fetch('/api/user/task/group/add', {
@@ -146,7 +148,6 @@ export default function GroupSide(props: Props) {
                 <AddTaskToGroup
                   userId={props.userId}
                   groupId={props.groupId}
-                  tasks={props.tasks}
                   addTask={handleSubmitEditTodo}
                 />
               </motion.aside>
@@ -207,3 +208,5 @@ export default function GroupSide(props: Props) {
     </main>
   )
 }
+
+export default React.memo(GroupSide)

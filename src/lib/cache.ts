@@ -7,16 +7,18 @@ export const getUser = cache(async () => {
   const sessionId = (await cookies()).get("sessionId")?.value;
   if (!sessionId) return null;
 
-  const cachedUser = await redis.get(`cachedUser:${sessionId}`);
+  const [cachedUser, userId] = await redis
+    .multi()
+    .get(`cachedUser:${sessionId}`)
+    .get(`session:${sessionId}`)
+    .exec();
+
   if (cachedUser) return cachedUser;
-
-  const userId = await redis.get(`session:${sessionId}`) as string
   if (!userId) return null;
-
+  
   const user = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { id: userId as string },
     select: {
-      id: true,
       name: true,
       profileImage: true,
       todo: { select: { id: true, title: true, description: true, deadline: true, groupId: true } },
@@ -27,6 +29,13 @@ export const getUser = cache(async () => {
 
   if (!user) return null;
 
-  await redis.set(`cachedUser:${sessionId}`, user, { ex: 60 * 10 });
-  return user;
+  (async () => {
+    try {
+      await redis.set(`cachedUser:${sessionId}`, {...user, id: userId}, { ex: 60 * 10 });
+    } catch (err) {
+      console.error("Redis cache failed:", err);
+    }
+  })();
+  
+  return {...user, id: userId};
 });

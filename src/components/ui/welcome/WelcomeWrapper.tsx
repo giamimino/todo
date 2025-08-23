@@ -8,7 +8,7 @@ type Props = {
   iamge: string
 }
 
-export default function WelcomeWrapper(props: Props) {
+function WelcomeWrapper(props: Props) {
   const router = useRouter()
 
   return (
@@ -24,7 +24,10 @@ export default function WelcomeWrapper(props: Props) {
         height={54}
         objectFit='cover'
         onClick={() => router.push('/home/profile')}
+        priority
       />
     </div>
   )
 }
+
+export default React.memo(WelcomeWrapper);

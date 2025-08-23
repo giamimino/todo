@@ -1,9 +1,11 @@
 'use client'
 import { Icon } from "@iconify/react/dist/iconify.js"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import styles from './style.module.scss'
 import Search from "../ui/common/search"
 import { AnimatePresence, motion } from "framer-motion"
+import { useDebounce } from "@/hooks/useDebounce"
+import { TaskContext } from "@/app/context/TaskContext"
 
 type Task = { 
   id: string; 
@@ -16,7 +18,6 @@ type Task = {
 type Props = {
   userId: string,
   groupId: string,
-  tasks: Task[],
   addTask: (taskId: string) => void
 }
 
@@ -28,13 +29,15 @@ type PropsTask = {
   onClick: (taskId: string) => void,
 }
 
-export default function AddTaskToGroup({ tasks, addTask }: Props) {
+export default function AddTaskToGroup({ addTask }: Props) {
   const [showForm, setShowForm] = useState(false)
-  const [searchValue, setSearchValue] = useState('')  
+  const [searchValue, setSearchValue] = useState('')
+  const debaunce = useDebounce(searchValue, 300)
+  const tasks = useContext(TaskContext) || []
 
   const filteredTasks = useMemo(() => {
-      return tasks.filter((task) => task.title.toLowerCase().includes(searchValue.toLowerCase()))
-  }, [searchValue, tasks])
+      return (tasks ?? []).filter((task) => task.title.toLowerCase().includes(debaunce.toLowerCase()))
+  }, [debaunce, tasks])
 
   function handleClick(taskId: string) {
     setShowForm(false)

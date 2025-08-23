@@ -2,7 +2,7 @@ import React from 'react'
 import styles from './style.module.scss'
 import { Icon } from '@iconify/react'
 
-export default function Header({getSettings} : {getSettings: () => void}) {
+function Header({getSettings} : {getSettings: () => void}) {
   return (
     <div className={styles.header}>
       <span></span>
@@ -15,3 +15,5 @@ export default function Header({getSettings} : {getSettings: () => void}) {
     </div>
   )
 }
+
+export default React.memo(Header)

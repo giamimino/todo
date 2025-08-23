@@ -11,7 +11,7 @@ type Task = {
   groupId: string | null;
 };
 
-export default function AddTask({ onAdd, onError }: { onError: (error: string) => void, onAdd: (task: Task) => void }) {
+function AddTask({ onAdd, onError }: { onError: (error: string) => void, onAdd: (task: Task) => void }) {
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [animating, setAnimating] = useState(false)
@@ -77,3 +77,5 @@ export default function AddTask({ onAdd, onError }: { onError: (error: string) =
     </>
   )
 }
+
+export default React.memo(AddTask)

@@ -29,12 +29,14 @@ export default function Home() {
     setShowModal(true)
   }
 
-  const SignInFields = React.memo(() => (
-    <>
-      <InputForm name="username" placeholder="Username" icon="solar:user-outline" />
-      <InputForm name="password" placeholder="Password" icon="solar:key-minimalistic-outline" />
-    </>
-  ))
+  const SignInFields = React.memo(function SignInFields() {
+    return (
+      <>
+        <InputForm name="username" placeholder="Username" icon="solar:user-outline" />
+        <InputForm name="password" placeholder="Password" icon="solar:key-minimalistic-outline" />
+      </>
+    )
+  })
 
 
   const action = auth ? signin : signup;

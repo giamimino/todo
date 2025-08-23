@@ -3,16 +3,18 @@ import Header from '@/components/header/header'
 import WelcomeWrapper from '@/components/ui/welcome/WelcomeWrapper'
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import styles from './page.module.scss'
-import AddTask from '@/components/addTask/AddTaks'
-import Task from '@/components/ui/common/Task'
 import Search from '@/components/ui/common/search'
-import Groups from '@/components/ui/groups'
 import Error from '@/components/ui/common/error'
 import GroupSide from '@/components/group/Group'
 import { AnimatePresence, motion } from 'framer-motion'
 import Settings from '@/components/settings/Settings'
 import { useRouter, useSearchParams } from 'next/navigation'
-
+import { useDebounce } from '@/hooks/useDebounce'
+import dynamic from 'next/dynamic'
+import { TaskContext } from '../context/TaskContext'
+const AddTask = dynamic(() => import('@/components/addTask/AddTaks'), { ssr: false });
+const Task = dynamic(() => import('@/components/ui/common/Task'), { ssr: false });
+const Groups = dynamic(() => import('@/components/ui/groups'), {ssr: false})
 
 type Group = { id: string, title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
@@ -28,6 +30,7 @@ export default function Home() {
   const [isGroupSide, setIsGroupSide] = useState("")
   const [isSettings, setIsSettings] = useState(false)
   const [gTheme, setGTheme] = useState(false)
+  const debouncedSearch = useDebounce(searchValue)
   const searchParam = useSearchParams()
   const router = useRouter()
   
@@ -56,27 +59,35 @@ export default function Home() {
   }, [])
 
   const run = useMemo(() => {
-    return user?.todo.reduce((acc, task) => 
-     new Date(acc.deadline) > new Date(task.deadline) ? task : acc , user.todo[0]);
-  }, [user])
+    if (!user?.todo?.length) return null;
+    return user.todo.reduce((acc, task) =>
+      new Date(acc.deadline) > new Date(task.deadline) ? task : acc
+    , user.todo[0]);
+  }, [user?.todo]);
+
 
   const filteredTasks = useMemo(() => {
     if (!user) return []
-    if(searchValue !== "") {
-      return user.todo.filter((task) => task.title.toLowerCase().includes(searchValue.toLowerCase())) ?? []
-    }
-    if (selectedGroup === "AII") {
-      return user.todo ?? []
-    }
-    if(selectedGroup === "Favorites") {
-      const favIds = new Set((user.favorite ?? []).map(fav => fav.todoId))
-      return user.todo.filter(
-        (t) => favIds.has(t.id)
-      ) ?? []
+
+    let tasks = user.todo ?? []
+    
+    if (debouncedSearch.trim() !== "") {
+      const s = searchValue.toLowerCase()
+      tasks = tasks.filter(t => t.title.toLowerCase().includes(s))
     }
 
-    return user.todo?.filter(todo => todo.groupId === selectedGroup) ?? []
-  }, [user, selectedGroup, searchValue])
+    if (selectedGroup !== "AII") {
+      if (selectedGroup === "Favorites") {
+        const favIds = new Set((user.favorite ?? []).map(fav => fav.todoId))
+        tasks = tasks.filter(t => favIds.has(t.id))
+      } else {
+        tasks = tasks.filter(t => t.groupId === selectedGroup)
+      }
+    }
+
+    return tasks
+  }, [user, selectedGroup, debouncedSearch])
+
 
   const handleAddTask = useCallback((task: Task) => {
     const newTodo: Todo = { ...task, groupId: task.groupId || null }
@@ -94,9 +105,6 @@ export default function Home() {
   const handleFilterGroups = useCallback((groupId: string) => {
     setSelectedGroup(groupId)
   }, [])
-
-  if (loading) return <p>loading...</p>
-  if (!user) return <p>{error}</p>
 
   function handleErrorMessage(error: string) {
     setError(error)
@@ -205,6 +213,8 @@ export default function Home() {
     } : prev)
   }, [])
 
+  if (loading) return <p>loading...</p>
+  if (!user) return <p>{error}</p>
   return (
     <div className={styles.page}>
       {error !== "" && <Error error={error} />}
@@ -246,21 +256,22 @@ export default function Home() {
               zIndex: 9999,
             }}
           >
-           <GroupSide
-              userId={user.id} 
-              tasks={user.todo} 
-              onDel={handleDelTask} 
-              onError={handleErrorMessage} 
-              onClick={handleGetBack} 
-              groupId={isGroupSide}
-              onGroup={handleGroupChange}
-              onTaskCreate={handleTaskCreateInGroup}
-              onGroupTaskDel={handleGroupTaskRemove}
-              onGroulDel={handleGroupRemove}
-              removeFavorite={handleRemoveFavorite}
-              addFavorite={handleAddFavorite}
-              favorites={user.favorite || []}
-            />
+          <TaskContext.Provider value={user.todo}>
+            <GroupSide
+                userId={user.id} 
+                onDel={handleDelTask} 
+                onError={handleErrorMessage} 
+                onClick={handleGetBack} 
+                groupId={isGroupSide}
+                onGroup={handleGroupChange}
+                onTaskCreate={handleTaskCreateInGroup}
+                onGroupTaskDel={handleGroupTaskRemove}
+                onGroulDel={handleGroupRemove}
+                removeFavorite={handleRemoveFavorite}
+                addFavorite={handleAddFavorite}
+                favorites={user.favorite || []}
+              />
+          </TaskContext.Provider>
           </motion.main>
         )}
       </AnimatePresence>

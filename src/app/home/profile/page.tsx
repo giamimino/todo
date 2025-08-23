@@ -18,7 +18,7 @@ type GroupProps = {
   onClick: (groupId: string) => void
 }
 
-export default function page() {
+export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)

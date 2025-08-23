@@ -27,7 +27,7 @@ type Props = {
 }
 
 
-export default function Task(props: Props) {
+function Task(props: Props) {
   const [inView, setInView] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const taskRef = useRef<HTMLDivElement>(null)
@@ -62,7 +62,7 @@ export default function Task(props: Props) {
       if(data.success) {
         props.onDel(data.taskId)
         setIsEdit(false)
-      } else if(!data.success) {
+      } else {
         props.onError(data.message || "Something went wrong.")
       }
     })
@@ -117,3 +117,5 @@ export default function Task(props: Props) {
     </>
   )
 }
+
+export default React.memo(Task);

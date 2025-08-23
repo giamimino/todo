@@ -10,7 +10,7 @@ type Props = {
   onClick: (id: string) => void
 }
 
-export default function Group(props: Props) {
+function Group(props: Props) {
 
   function handleClick() {
     if (props.fill) {
@@ -26,3 +26,5 @@ export default function Group(props: Props) {
     </button>
   )
 }
+
+export default React.memo(Group)
