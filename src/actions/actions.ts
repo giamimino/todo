@@ -1,38 +1,38 @@
-'use server'
-import prisma from "@/lib/prisma"
-import { redis } from "@/lib/redis"
-import bcrypt from "bcrypt"
-import { cookies } from "next/headers"
-import cuid from 'cuid'
+"use server";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/redis";
+import bcrypt from "bcrypt";
+import { cookies } from "next/headers";
+import { createId } from "@paralleldrive/cuid2";
 
 type Todo = {
-  id: string,
-  title: string,
-  description: string,
-  deadline: Date,
-  groupId: string | null
-}
-
-type User = {
-  id: string,
-  name: string,
-  profileImage: string,
-  todo: Todo[],
-  groups: Groups[]
-  favorite: {id: string, todoId: string}[] | null
-}
-
-type Groups = {
-  id: string,
-  title: string,
-}
-
-type Task = {
-  id: string,
+  id: string;
   title: string;
   description: string;
   deadline: Date;
-  groupId: string | null
+  groupId: string | null;
+};
+
+type User = {
+  id: string;
+  name: string;
+  profileImage: string;
+  todo: Todo[];
+  groups: Groups[];
+  favorite: { id: string; todoId: string }[] | null;
+};
+
+type Groups = {
+  id: string;
+  title: string;
+};
+
+type Task = {
+  id: string;
+  title: string;
+  description: string;
+  deadline: Date;
+  groupId: string | null;
 };
 
 type AddTaskSuccess = {
@@ -43,21 +43,21 @@ type AddTaskSuccess = {
 type AddTaskError = {
   success: false;
   message: string;
-}
+};
 
 export async function signup(formData: FormData) {
   try {
-    const email = formData.get('email') as string
-    const username = formData.get('username') as string
-    const password = formData.get('password') as string
-    if(!email || !username || !password) {
+    const email = formData.get("email") as string;
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    if (!email || !username || !password) {
       return {
         success: false,
-        message: "Some required fields are missing."
-      }
+        message: "Some required fields are missing.",
+      };
     }
-    
-    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
         email,
@@ -65,57 +65,57 @@ export async function signup(formData: FormData) {
         name: username,
         password: hashedPassword,
       },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
-    if(!user) {
+    if (!user) {
       return {
         success: false,
-        message: "User can't be created."
-      }
+        message: "User can't be created.",
+      };
     }
 
-    const sessionId = cuid()
-    const cookieStore = await cookies()
+    const sessionId = createId();
+    const cookieStore = await cookies();
     cookieStore.set("sessionId", sessionId, {
       maxAge: 2 * 24 * 60 * 60, // 2 days
       secure: true,
       httpOnly: true,
-    })
+    });
 
-    const sessionRediskey = `session:${sessionId}`
-    await redis.set(sessionRediskey, user.id, { ex: 2 * 24 * 60 * 60 })
+    const sessionRediskey = `session:${sessionId}`;
+    await redis.set(sessionRediskey, user.id, { ex: 2 * 24 * 60 * 60 });
 
     return {
-      success: true
-    }
-  }catch(err) {
+      success: true,
+    };
+  } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }
 
 export async function signin(formData: FormData) {
   try {
-    const username = formData.get("username") as string
-    const password = formData.get("password") as string
-    if(!username || !password) {
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    if (!username || !password) {
       return {
         success: false,
-        message: "Some required fields are missing."
-      }
+        message: "Some required fields are missing.",
+      };
     }
 
     const user = await prisma.user.findUnique({
       where: { username },
       select: {
         id: true,
-        password: true
-      }
-    })
+        password: true,
+      },
+    });
 
     if (!user) {
       return {
@@ -124,7 +124,7 @@ export async function signin(formData: FormData) {
       };
     }
 
-    const checkPassword = await bcrypt.compare(password, user?.password)
+    const checkPassword = await bcrypt.compare(password, user?.password);
     if (!checkPassword) {
       return {
         success: false,
@@ -132,51 +132,54 @@ export async function signin(formData: FormData) {
       };
     }
 
-    const sessionId = cuid()
-    const cookieStore = await cookies()
+    const sessionId = createId();
+    const cookieStore = await cookies();
     cookieStore.set("sessionId", sessionId, {
       maxAge: 2 * 24 * 60 * 60,
       secure: true,
       httpOnly: true,
-    })
+    });
 
-    const sessionRediskey = `session:${sessionId}`
-    await redis.set(sessionRediskey, user.id, { ex: 2 * 24 * 60 * 60 })
+    const sessionRediskey = `session:${sessionId}`;
+    await redis.set(sessionRediskey, user.id, { ex: 2 * 24 * 60 * 60 });
 
     return {
-      success: true
-    }
+      success: true,
+    };
   } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }
 
-export async function addTask(formData: FormData, groupId?: string): Promise<AddTaskSuccess | AddTaskError> {
+export async function addTask(
+  formData: FormData,
+  groupId?: string
+): Promise<AddTaskSuccess | AddTaskError> {
   try {
-    const title = formData.get("title") as string
-    const description = formData.get("description") as string
-    const deadlineStr = formData.get("deadline") as string
-    const deadline = deadlineStr ? new Date(deadlineStr) : null
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const deadlineStr = formData.get("deadline") as string;
+    const deadline = deadlineStr ? new Date(deadlineStr) : null;
 
-    if(!title || !description || !deadlineStr) {
+    if (!title || !description || !deadlineStr) {
       return {
         success: false,
-        message: "Some required fields are missing."
-      }
+        message: "Some required fields are missing.",
+      };
     }
 
-    const sessionId = (await cookies()).get("sessionId")?.value
-    const sessionRedisKey = `session:${sessionId}`
-    const userId = await redis.get(sessionRedisKey) as string
-    if(!userId) {
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const sessionRedisKey = `session:${sessionId}`;
+    const userId = (await redis.get(sessionRedisKey)) as string;
+    if (!userId) {
       return {
         success: false,
-        message: "Not authenticated."
-      }
+        message: "Not authenticated.",
+      };
     }
 
     const task = await prisma.todo.create({
@@ -185,7 +188,7 @@ export async function addTask(formData: FormData, groupId?: string): Promise<Add
         description,
         deadline: deadline || new Date(),
         user: { connect: { id: userId } },
-        ...(groupId ? { group: { connect: { id: groupId } } } : {})
+        ...(groupId ? { group: { connect: { id: groupId } } } : {}),
       },
       select: {
         id: true,
@@ -193,60 +196,60 @@ export async function addTask(formData: FormData, groupId?: string): Promise<Add
         description: true,
         deadline: true,
         groupId: true,
-      }
-    })
+      },
+    });
 
-    if(!task) {
+    if (!task) {
       return {
         success: false,
-        message: "Task can't be created."
-      }
+        message: "Task can't be created.",
+      };
     }
 
     (async () => {
       try {
-        const cachedUserKey = `cachedUser:${sessionId}`
-        const cachedUser = await redis.get(cachedUserKey) as User;
-        if (!cachedUser) return
+        const cachedUserKey = `cachedUser:${sessionId}`;
+        const cachedUser = (await redis.get(cachedUserKey)) as User;
+        if (!cachedUser) return;
 
         const newCachedUser: User = {
           ...cachedUser,
           todo: [
             ...(cachedUser.todo || []),
-            { 
+            {
               id: task.id,
               title: task.title,
               description: task.description,
               deadline: task.deadline,
               groupId: task.groupId || null,
-            }
-          ]
-        }
+            },
+          ],
+        };
 
-        await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
-      }catch(err) {
+        await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
+      } catch (err) {
         console.log(err);
       }
     })();
 
     return { success: true, task };
-  }catch(err) {
+  } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }
 
 export async function addGroup(formData: FormData, userId: string) {
   try {
-    const title = formData.get("title") as string
-    if(!title) {
+    const title = formData.get("title") as string;
+    if (!title) {
       return {
         success: false,
-        message: "Some required fields are missing."
-      }
+        message: "Some required fields are missing.",
+      };
     }
 
     const group = await prisma.group.create({
@@ -256,43 +259,46 @@ export async function addGroup(formData: FormData, userId: string) {
       },
       select: {
         id: true,
-        title: true
-      }
-    })
-    if(!group) {
+        title: true,
+      },
+    });
+    if (!group) {
       return {
         success: false,
-        message: "Group can't be created."
-      }
+        message: "Group can't be created.",
+      };
     }
 
     (async () => {
-      const sessionId = (await cookies()).get("sessionId")?.value
-      const cachedUserKey = `cachedUser:${sessionId}`
-      const cachedUser = await redis.get(cachedUserKey) as User
-      if(!cachedUser) return
+      const sessionId = (await cookies()).get("sessionId")?.value;
+      const cachedUserKey = `cachedUser:${sessionId}`;
+      const cachedUser = (await redis.get(cachedUserKey)) as User;
+      if (!cachedUser) return;
 
       const newCachedUser = {
         ...cachedUser,
-        group: [...(cachedUser.groups || []), {
-          title: group.title,
-          id: group.id
-        }]
-      }
+        group: [
+          ...(cachedUser.groups || []),
+          {
+            title: group.title,
+            id: group.id,
+          },
+        ],
+      };
 
-      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
-    })()
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
+    })();
 
     return {
       success: true,
-      group
-    }
-  }catch(err) {
+      group,
+    };
+  } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }
 
@@ -302,39 +308,36 @@ export async function GroupRemove(groupId: string) {
       where: { id: groupId },
       select: {
         id: true,
-      }
-    })
+      },
+    });
 
-    if(!group) {
+    if (!group) {
       return {
         success: false,
-        message: "Group can't be deleted."
-      }
-    };
+        message: "Group can't be deleted.",
+      };
+    }
 
     (async () => {
-      const sessionId = (await cookies()).get("sessionId")?.value
-      const cachedUserKey = `cachedUser:${sessionId}`
-      const cachedUser = await redis.get(cachedUserKey) as User
-      if(!cachedUser) return
+      const sessionId = (await cookies()).get("sessionId")?.value;
+      const cachedUserKey = `cachedUser:${sessionId}`;
+      const cachedUser = (await redis.get(cachedUserKey)) as User;
+      if (!cachedUser) return;
 
-      const newCachedUser = cachedUser.groups.filter(
-        (g) => g.id !== group.id
-      )
-      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+      const newCachedUser = cachedUser.groups.filter((g) => g.id !== group.id);
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
     })();
 
     return {
       success: true,
-      groupId: group.id
-    }
-
-  }catch (err) {
+      groupId: group.id,
+    };
+  } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }
 
@@ -348,39 +351,39 @@ export async function addFavorite(taskId: string, userId: string) {
       select: {
         id: true,
         todoId: true,
-      }
-    })
+      },
+    });
 
-    if(!favorite) {
+    if (!favorite) {
       return {
         success: false,
         messagee: "Task can't be added in favorites.",
-      }
+      };
     }
 
     (async () => {
-      const sessionId = (await cookies()).get("sessionId")?.value
-      const cachedUserKey = `cachedUser:${sessionId}`
-      const cachedUser = await redis.get(cachedUserKey) as User
-      if(!cachedUser) return
+      const sessionId = (await cookies()).get("sessionId")?.value;
+      const cachedUserKey = `cachedUser:${sessionId}`;
+      const cachedUser = (await redis.get(cachedUserKey)) as User;
+      if (!cachedUser) return;
 
       const newCachedUser = {
         ...cachedUser,
-        favorite: [...(cachedUser.favorite || []), favorite]
-      }
-      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+        favorite: [...(cachedUser.favorite || []), favorite],
+      };
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
     })();
 
     return {
       success: true,
-      favorite
-    }
-  }catch(err) {
+      favorite,
+    };
+  } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }
 
@@ -388,40 +391,38 @@ export async function removeFavorite(favoriteId: string) {
   try {
     const favorite = await prisma.favorite.delete({
       where: { id: favoriteId },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
 
-    if(!favorite) {
+    if (!favorite) {
       return {
         success: false,
         messagee: "Task can't be removed from favorites.",
-      }
+      };
     }
 
     (async () => {
-      const sessionId = (await cookies()).get("sessionId")?.value
-      const cachedUserKey = `cachedUser:${sessionId}`
-      const cachedUser = await redis.get(cachedUserKey) as User
-      if(!cachedUser) return
+      const sessionId = (await cookies()).get("sessionId")?.value;
+      const cachedUserKey = `cachedUser:${sessionId}`;
+      const cachedUser = (await redis.get(cachedUserKey)) as User;
+      if (!cachedUser) return;
 
       const newCachedUser = {
         ...cachedUser,
-        favorite: cachedUser.favorite?.filter(
-          (f) => f.id !== favorite.id
-        )
-      }
-      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 })
+        favorite: cachedUser.favorite?.filter((f) => f.id !== favorite.id),
+      };
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
     })();
 
     return {
       success: true,
-      favorite
-    }
-  }catch(err) {
+      favorite,
+    };
+  } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: "Something went wrong."
-    }
+      message: "Something went wrong.",
+    };
   }
 }

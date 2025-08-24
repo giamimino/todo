@@ -27,8 +27,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const controller = new AbortController()
-    const theme = localStorage.getItem('theme') === "dark" ? true : false
-    theme && document.body.classList.toggle('dark-mode');
+    const theme = localStorage.getItem("theme") === "dark";
+
+    if (theme) {
+      document.body.classList.add("dark-mode");
+    }
     fetch('/api/user/get', { signal: controller.signal })
       .then(res => res.json())
       .then(data => {

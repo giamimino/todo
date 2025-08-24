@@ -34,11 +34,12 @@ type Props = {
 function GroupSide(props: Props) {
   const [isControl, setIsControl] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const tasks = useContext(TaskContext) || []
+  const tasks = useContext(TaskContext)
+  const stableTasks = useMemo(() => tasks || [], [tasks]);
 
   const filteredTasks = useMemo(() => {
-    return (tasks || []).filter(task => task.groupId === props.groupId);
-  }, [tasks, props.groupId]);
+    return stableTasks.filter(task => task.groupId === props.groupId);
+  }, [stableTasks, props.groupId]);
 
   function handleSubmitEditTodo(taskId: string) {
     fetch('/api/user/task/group/add', {

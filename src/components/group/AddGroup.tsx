@@ -33,11 +33,12 @@ export default function AddTaskToGroup({ addTask }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const debaunce = useDebounce(searchValue, 300)
-  const tasks = useContext(TaskContext) || []
+  const tasks = useContext(TaskContext)
+  const stableTasks = useMemo(() => tasks || [], [tasks]);
 
   const filteredTasks = useMemo(() => {
-      return (tasks ?? []).filter((task) => task.title.toLowerCase().includes(debaunce.toLowerCase()))
-  }, [debaunce, tasks])
+      return stableTasks.filter((task) => task.title.toLowerCase().includes(debaunce.toLowerCase()))
+  }, [debaunce, stableTasks])
 
   function handleClick(taskId: string) {
     setShowForm(false)
