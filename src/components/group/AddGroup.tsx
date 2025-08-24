@@ -7,14 +7,6 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useDebounce } from "@/hooks/useDebounce"
 import { TaskContext } from "@/app/context/TaskContext"
 
-type Task = { 
-  id: string; 
-  title: string; 
-  description: string; 
-  deadline: Date; 
-  groupId: string | null 
-}
-
 type Props = {
   userId: string,
   groupId: string,

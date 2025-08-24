@@ -1,5 +1,4 @@
 import React from 'react'
-import styles from './search.module.scss'
 import InputForm from '../input'
 
 function Search({ onChange }: { onChange: (value: string) => void }) {
@@ -7,7 +6,7 @@ function Search({ onChange }: { onChange: (value: string) => void }) {
     onChange(value)
   }
   return (
-    <div className={styles.search}>
+    <div>
       <InputForm 
         name='search'
         placeholder='search'

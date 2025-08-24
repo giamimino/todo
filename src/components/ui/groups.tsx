@@ -1,6 +1,5 @@
 'use client'
 import React, { useMemo, useState } from 'react'
-import styles from './groups.module.scss'
 import Group from './common/group'
 import AddGroup from '../addGroup/AddGroup'
 
@@ -31,7 +30,7 @@ export default function Groups({ groupTitle, userId, onAdd, onFilter, onError, o
   }
 
   return (
-    <div className={styles.groups}>
+    <div className={'p-2.5 flex flex-wrap gap-2.5'}>
       {groups.map((group) => (
         <Group
           key={group.name}

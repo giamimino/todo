@@ -4,14 +4,6 @@ import styles from './task.module.scss'
 import { Icon } from '@iconify/react/dist/iconify.js'
 import { addFavorite, removeFavorite } from '@/actions/actions';
 
-type Task = {
-  id: string,
-  title: string;
-  description: string;
-  deadline: Date;
-  group: { id: string, title: string } | null;
-};
-
 type Props = {
   id: string,
   title: string,
@@ -24,6 +16,7 @@ type Props = {
   addFavorite: (taskId: string, favoriteId: string) => void
   removeFavorite: (taskId: string) => void,
   favoriteId: string,
+  getTimerSide: (taskId: string) => void
 }
 
 
@@ -110,7 +103,7 @@ function Task(props: Props) {
         </div>
         <aside className={`${styles.edit} ${isEdit ? styles.inEdit : ''}`}>
           <button onClick={handleFavorite}><span>{props.favoriteId === '' ? 'Add favorite' :'Remove favorite'}</span><span className={props.favoriteId !== '' ? styles.remove : ''}><Icon  icon={'solar:star-line-duotone'} /></span></button>
-          <button><span>Remind me</span><Icon icon={'mage:calendar-3'} /></button>
+          <button onClick={() => props.getTimerSide(props.id)}><span>Remind me</span><Icon icon={'mage:calendar-3'} /></button>
           <button onClick={handleDelete}><span>Remove</span><Icon icon={'solar:trash-bin-minimalistic-linear'} /></button>
         </aside>
       </div>

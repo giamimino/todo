@@ -9,7 +9,7 @@ type Props = {
   onChange?: (value: string) => void
 }
 
-export default function InputForm(props: Props) {
+function InputForm(props: Props) {
   return (
     <div className={styles.input}>
       {props.icon && <label htmlFor={props.name}><Icon icon={props.icon} /></label>}
@@ -17,3 +17,5 @@ export default function InputForm(props: Props) {
     </div>
   )
 }
+
+export default React.memo(InputForm)

@@ -2,7 +2,6 @@
 import Header from "@/components/header/header";
 import WelcomeWrapper from "@/components/ui/welcome/WelcomeWrapper";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import styles from "./page.module.scss";
 import Search from "@/components/ui/common/search";
 import Error from "@/components/ui/common/error";
 import GroupSide from "@/components/group/Group";
@@ -12,6 +11,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import dynamic from "next/dynamic";
 import { TaskContext } from "../context/TaskContext";
+import TimerSide from "@/components/timerSide/timerSide";
+import { TimerContext } from "../context/timerContext";
 const AddTask = dynamic(() => import("@/components/addTask/AddTaks"), {
   ssr: false,
 });
@@ -44,6 +45,13 @@ type Task = {
   groupId: string | null;
 };
 
+type TimerTask = {
+  id: string;
+  title: string;
+  description: string;
+  deadline: Date;
+};
+
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +61,7 @@ export default function Home() {
   const [isGroupSide, setIsGroupSide] = useState("");
   const [isSettings, setIsSettings] = useState(false);
   const [gTheme, setGTheme] = useState(false);
+  const [timer, setTimer] = useState<TimerTask | null>(null);
   const debouncedSearch = useDebounce(searchValue);
   const router = useRouter();
   const pathname = usePathname();
@@ -61,10 +70,9 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     const g = params.get("g");
     if (g) setIsGroupSide(g);
-  }, [pathname]);;
+  }, [pathname]);
 
   useEffect(() => {
-
     const controller = new AbortController();
     const theme = localStorage.getItem("theme") === "dark";
 
@@ -171,6 +179,7 @@ export default function Home() {
   const handleGetBack = useCallback(() => {
     setIsGroupSide("");
     setIsSettings(false);
+    setTimer(null)
     const url = new URL(window.location.href);
     url.searchParams.delete("g");
     router.replace(url.toString(), undefined);
@@ -285,11 +294,42 @@ export default function Home() {
     );
   }, []);
 
+  const handleTimerOpen = useCallback((taskId: string) => {
+    const curTask = user?.todo.find((t) => t.id === taskId);
+    setTimer({
+      id: curTask?.id as string,
+      title: curTask?.title as string,
+      description: curTask?.description as string,
+      deadline: curTask?.deadline as Date
+    });
+  }, []);
+
   if (loading) return <p>loading...</p>;
   if (!user) return <p>{error}</p>;
   return (
-    <div className={styles.page}>
+    <div className="flex flex-col gap-2.5">
       {error !== "" && <Error error={error} />}
+      <AnimatePresence>
+        {timer !== null && (
+          <motion.main
+            initial={{ x: "200%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "200%" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            style={{
+              position: "fixed",
+              top: 0,
+              height: "100%",
+              width: "100%",
+              zIndex: 9999,
+            }}
+          >
+            <TimerContext.Provider value={timer}>
+              <TimerSide getBack={handleGetBack} />
+            </TimerContext.Provider>
+          </motion.main>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {isSettings && (
           <motion.main
@@ -354,7 +394,7 @@ export default function Home() {
         iamge={user.profileImage === "user" ? "/user.webp" : user.profileImage}
       />
       {run && (
-        <div className={styles.run}>
+        <div className="p-2.5 flex flex-col gap-2.5">
           <h1>Run</h1>
           <Task
             userId={user.id}
@@ -368,6 +408,7 @@ export default function Home() {
             favoriteId={
               user.favorite?.find((fav) => fav.todoId === run.id)?.id || ""
             }
+            getTimerSide={handleTimerOpen}
             addFavorite={handleAddFavorite}
             removeFavorite={handleRemoveFavorite}
           />
@@ -383,7 +424,7 @@ export default function Home() {
         onClick={handleGroupSide}
         isFavorite={user.favorite?.length ? true : false}
       />
-      <main>
+      <main className="flex flex-col gap-1.25">
         {filteredTasks.map((task, index) => (
           <Task
             key={task.id}
@@ -395,6 +436,7 @@ export default function Home() {
             id={task.id}
             onDel={handleDelTask}
             onError={handleErrorMessage}
+            getTimerSide={handleTimerOpen}
             favoriteId={
               user.favorite?.find((fav) => fav.todoId === task.id)?.id || ""
             }
