@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import cuid from "cuid";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+import { createId } from "@paralleldrive/cuid2";
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         message: "Incorrect password",
       });
 
-    const sessionId = cuid();
+    const sessionId = createId();
     await redis.set(`session:${sessionId}`, user.id, { ex: 2 * 24 * 60 * 60 });
 
     const res = NextResponse.json({ success: true });
