@@ -17,6 +17,7 @@ type Props = {
   removeFavorite: (taskId: string) => void,
   favoriteId: string,
   getTimerSide: (taskId: string) => void
+  style?: React.CSSProperties
 }
 
 
@@ -83,7 +84,7 @@ function Task(props: Props) {
 
   return (
     <>
-      <div ref={taskRef} className={styles.wrapper}>
+      <div ref={taskRef} style={props.style} className={styles.wrapper}>
         <span className={`${isEdit ? styles.blur : ''}`} 
         onClick={() => setIsEdit(prev => !prev)}></span>
         <div 
@@ -103,7 +104,7 @@ function Task(props: Props) {
         </div>
         <aside className={`${styles.edit} ${isEdit ? styles.inEdit : ''}`}>
           <button onClick={handleFavorite}><span>{props.favoriteId === '' ? 'Add favorite' :'Remove favorite'}</span><span className={props.favoriteId !== '' ? styles.remove : ''}><Icon  icon={'solar:star-line-duotone'} /></span></button>
-          <button onClick={() => props.getTimerSide(props.id)}><span>Remind me</span><Icon icon={'mage:calendar-3'} /></button>
+          <button onClick={() => props.getTimerSide(props.id)}><span>Edit</span><Icon icon={'akar-icons:edit'} /></button>
           <button onClick={handleDelete}><span>Remove</span><Icon icon={'solar:trash-bin-minimalistic-linear'} /></button>
         </aside>
       </div>

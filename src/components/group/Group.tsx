@@ -29,6 +29,7 @@ type Props = {
   addFavorite: (taskId: string, favoriteId: string) => void
   removeFavorite: (taskId: string) => void,
   favorites?: {id: string, todoId: string}[] | null
+  getTimerSide: (taskId: string) => void
 }
 
 function GroupSide(props: Props) {
@@ -132,6 +133,7 @@ function GroupSide(props: Props) {
                 addFavorite={props.addFavorite}
                 removeFavorite={props.removeFavorite}
                 favoriteId={props.favorites?.find(f => f.todoId === task.id)?.id || ''}
+                getTimerSide={props.getTimerSide}
               />
               <button onClick={() => handleRemove(task.id)}>
                 <Icon icon={'mingcute:close-fill'} />

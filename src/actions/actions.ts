@@ -214,7 +214,7 @@ export async function GroupRemove(groupId: string) {
 
       const newCachedUser = {
         ...cachedUser,
-        group: cachedUser.group.filter((g) => g.id !== groupId)
+        group: cachedUser.group.filter((g) => g.id !== groupId),
       };
       await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
     })();
@@ -308,6 +308,62 @@ export async function removeFavorite(favoriteId: string) {
     return {
       success: true,
       favorite,
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong.",
+    };
+  }
+}
+
+export async function editTask(formData: FormData, taskId: string) {
+  try {
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+
+    if(!title || !description) {
+      return {
+        success: false,
+        message: "Some required fields are missing."
+      }
+    }
+
+    const task = await prisma.todo.update({
+      where: { id: taskId },
+      data: { title, description },
+      select: { id: true },
+    });
+    if (!task) {
+      return {
+        success: false,
+        message: "please try again, task can't be edited.",
+      };
+    }
+
+    (async () => {
+      const sessionId = (await cookies()).get("sessionId")?.value
+      const sessionRedisKey = `cachedUser:${sessionId}`
+      const cachedUser = await redis.get(sessionRedisKey) as User
+      if(!cachedUser) return
+
+      const newCachedUser = {
+        ...cachedUser,
+        todo: cachedUser.todo.map(
+          (t) => t.id === task.id ? {
+            ...t,
+            title, description
+          } : t
+        )
+      }
+
+      await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 })
+    })();
+
+    return {
+      success: true,
+      taskId: task.id,
     };
   } catch (err) {
     console.log(err);

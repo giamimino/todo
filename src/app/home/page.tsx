@@ -11,8 +11,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import dynamic from "next/dynamic";
 import { TaskContext } from "../context/TaskContext";
-import TimerSide from "@/components/timerSide/timerSide";
-import { TimerContext } from "../context/timerContext";
+import EditSide from "@/components/EditSide/EditSide";
+import Tasks from "@/components/ui/common/Tasks";
 const AddTask = dynamic(() => import("@/components/addTask/AddTaks"), {
   ssr: false,
 });
@@ -37,6 +37,7 @@ type User = {
   group?: Group[] | null;
   favorite?: { id: string; todoId: string }[] | null;
 };
+
 type Task = {
   id: string;
   title: string;
@@ -130,6 +131,7 @@ export default function Home() {
     return tasks;
   }, [user, selectedGroup, debouncedSearch]);
 
+
   const handleAddTask = useCallback((task: Task) => {
     const newTodo: Todo = { ...task, groupId: task.groupId || null };
     setUser((prev) =>
@@ -179,7 +181,7 @@ export default function Home() {
   const handleGetBack = useCallback(() => {
     setIsGroupSide("");
     setIsSettings(false);
-    setTimer(null)
+    setTimer(null);
     const url = new URL(window.location.href);
     url.searchParams.delete("g");
     router.replace(url.toString(), undefined);
@@ -294,15 +296,37 @@ export default function Home() {
     );
   }, []);
 
-  const handleTimerOpen = useCallback((taskId: string) => {
-    const curTask = user?.todo.find((t) => t.id === taskId);
-    setTimer({
-      id: curTask?.id as string,
-      title: curTask?.title as string,
-      description: curTask?.description as string,
-      deadline: curTask?.deadline as Date
-    });
-  }, []);
+  const handleTimerOpen = useCallback(
+    (taskId: string) => {
+      setIsGroupSide("");
+      const curTask = user?.todo.find((t) => t.id === taskId);
+      setTimer(
+        curTask
+          ? {
+              id: curTask?.id,
+              title: curTask?.title,
+              description: curTask?.description,
+              deadline: curTask?.deadline,
+            }
+          : null
+      );
+    },
+    [user]
+  );
+
+  const handleTaskUpdate = useCallback(
+    (taskId: string, title: string, description: string) => {
+      setUser(prev => prev ? {
+        ...prev,
+        todo: prev.todo.map(
+          (t) => t.id === taskId ? {
+            ...t,
+            title, description
+          } : t
+        )
+      } : prev)
+    }, []
+  )
 
   if (loading) return <p>loading...</p>;
   if (!user) return <p>{error}</p>;
@@ -310,7 +334,7 @@ export default function Home() {
     <div className="flex flex-col gap-2.5">
       {error !== "" && <Error error={error} />}
       <AnimatePresence>
-        {timer !== null && (
+        {timer && (
           <motion.main
             initial={{ x: "200%" }}
             animate={{ x: 0 }}
@@ -324,9 +348,13 @@ export default function Home() {
               zIndex: 9999,
             }}
           >
-            <TimerContext.Provider value={timer}>
-              <TimerSide getBack={handleGetBack} />
-            </TimerContext.Provider>
+            <EditSide
+              getBack={handleGetBack}
+              task={timer}
+              onDel={handleDelTask}
+              onError={handleErrorMessage}
+              onTaskEdit={handleTaskUpdate}
+            />
           </motion.main>
         )}
       </AnimatePresence>
@@ -382,6 +410,7 @@ export default function Home() {
                 removeFavorite={handleRemoveFavorite}
                 addFavorite={handleAddFavorite}
                 favorites={user.favorite || []}
+                getTimerSide={handleTimerOpen}
               />
             </TaskContext.Provider>
           </motion.main>
@@ -424,27 +453,17 @@ export default function Home() {
         onClick={handleGroupSide}
         isFavorite={user.favorite?.length ? true : false}
       />
-      <main className="flex flex-col gap-1.25">
-        {filteredTasks.map((task, index) => (
-          <Task
-            key={task.id}
-            title={task.title}
-            description={task.description}
-            isRun={false}
-            delay={index * 100}
-            userId={user.id}
-            id={task.id}
-            onDel={handleDelTask}
-            onError={handleErrorMessage}
-            getTimerSide={handleTimerOpen}
-            favoriteId={
-              user.favorite?.find((fav) => fav.todoId === task.id)?.id || ""
-            }
-            addFavorite={handleAddFavorite}
-            removeFavorite={handleRemoveFavorite}
-          />
-        ))}
-      </main>
+      <TaskContext.Provider value={filteredTasks}>
+        <Tasks
+          userId={user.id}
+          onDel={handleDelTask}
+          onError={handleErrorMessage}
+          getTimerSide={handleTimerOpen}
+          addFavorite={handleAddFavorite}
+          removeFavorite={handleRemoveFavorite}
+          favorites={user.favorite}
+        />
+      </TaskContext.Provider>
       <AddTask onAdd={handleAddTask} onError={handleErrorMessage} />
     </div>
   );

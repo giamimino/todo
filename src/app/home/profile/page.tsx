@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useMemo, useState } from 'react'
-import styles from './page.module.scss'
 import { Icon } from '@iconify/react'
 import { useRouter } from 'next/navigation'
 import Profile from '@/components/profile/profile'
@@ -104,7 +103,7 @@ export default function ProfilePage() {
   
 
   return (
-    <div className={styles.page}>
+    <div>
       <header>
         <button onClick={() => router.push('/home')}>
           <Icon 
@@ -122,7 +121,7 @@ export default function ProfilePage() {
         curTotal={user.todo.length}
         total={user.todo.length}
       />
-      <div className={styles.group}>
+      <div>
         <h1>Group</h1>
         <AnimatePresence>
           {groups.map((g, index) => (
@@ -150,7 +149,6 @@ export default function ProfilePage() {
       <AnimatePresence>
         {showForm && (
           <motion.form
-            className={styles.form}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
