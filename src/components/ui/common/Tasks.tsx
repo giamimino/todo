@@ -28,12 +28,12 @@ export default function Tasks(props: Props) {
     }
   }
 
-  function throttle(fn: Function, wait: number) {
+  function throttle(fn: (e: React.UIEvent<HTMLElement>) => void, wait: number) {
     let last = 0;
-    return function(...args: any) {
+    return function(e: React.UIEvent<HTMLElement>) {
       const now = Date.now();
       if (now - last >= wait) {
-        fn(...args);
+        fn(e);
         last = now;
       }
     };

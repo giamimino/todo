@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [edit, setEdit] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -157,7 +158,7 @@ export default function ProfilePage() {
             exit={{ opacity: 0 }}
             onSubmit={handleSubmitGroup}
             className='flex flex-col gap-2.5 fixed left-1/2 
-            translate-x-[-50%] bottom-5'
+            translate-x-[-50%] bottom-20'
           >
             <motion.input
               placeholder="Title"
@@ -184,6 +185,45 @@ export default function ProfilePage() {
           </motion.form>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {edit && (
+          <motion.form
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className='flex flex-col gap-2.5 fixed left-1/2 
+            translate-x-[-50%] bottom-20'
+          >
+            <motion.input
+              type='name'
+              name='name'
+              placeholder='Name'
+              defaultValue={user.name}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className='py-2 px-3.5 rounded-xl text-sm 
+              bg-[var(--SeaShell-50)] border border-solid border-[var(--SeaShell-200)]
+              focus:outline-none'
+            />
+            <motion.button
+              type='submit'
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex justify-center items-center cursor-pointer 
+              w-8 h-8 rounded-full bg-[var(--BlushPink-400)] mx-auto text-white hover:opacity-80"
+            >
+              <Icon icon={'formkit:submit'} />
+            </motion.button>
+          </motion.form>
+        )}
+      </AnimatePresence>
+        <button onClick={() => setEdit(prev => !prev)}
+        className="flex justify-center items-center cursor-pointer 
+        w-11 h-11 rounded-full bg-[var(--BlushPink-400)] fixed left-1/2 translate-x-[-50%] text-xl bottom-5 text-white hover:opacity-80">
+          <Icon icon={'majesticons:edit-pen-2-line'} />
+        </button>
     </div>
   )
 }
