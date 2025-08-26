@@ -103,9 +103,10 @@ export default function ProfilePage() {
   
 
   return (
-    <div>
-      <header>
-        <button onClick={() => router.push('/home')}>
+    <div className='p-2.5 flex flex-col gap-2.5'>
+      <header className="flex w-full justify-between p-2.5 gap-2.5">
+        <button 
+        onClick={() => router.push('/home')}>
           <Icon 
               icon={'pajamas:go-back'}
             />
@@ -121,8 +122,8 @@ export default function ProfilePage() {
         curTotal={user.todo.length}
         total={user.todo.length}
       />
-      <div>
-        <h1>Group</h1>
+      <div className='p-2.5 flex flex-col gap-1.25 '>
+        <h1 className='text-[var(--SeaShell-950)] text-xl font-bold'>Group</h1>
         <AnimatePresence>
           {groups.map((g, index) => (
             <motion.div
@@ -142,7 +143,9 @@ export default function ProfilePage() {
           ))}
         </AnimatePresence>
 
-          <button onClick={() => setShowForm(prev => !prev)}>
+          <button className="flex justify-center items-center cursor-pointer 
+          w-8 h-8 rounded-full bg-[var(--BlushPink-400)] mx-auto text-white hover:opacity-80" 
+          onClick={() => setShowForm(prev => !prev)}>
             <Icon icon="material-symbols:add-rounded" />
           </button>
       </div>
@@ -153,6 +156,8 @@ export default function ProfilePage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onSubmit={handleSubmitGroup}
+            className='flex flex-col gap-2.5 fixed left-1/2 
+            translate-x-[-50%] bottom-5'
           >
             <motion.input
               placeholder="Title"
@@ -161,6 +166,9 @@ export default function ProfilePage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
+              className='py-2 px-3.5 rounded-xl text-sm 
+              bg-[var(--SeaShell-50)] border border-solid border-[var(--SeaShell-200)]
+              focus:outline-none'
             />
 
             <motion.button
@@ -168,6 +176,8 @@ export default function ProfilePage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
+              className="flex justify-center items-center cursor-pointer 
+              w-8 h-8 rounded-full bg-[var(--BlushPink-400)] mx-auto text-white hover:opacity-80"
             >
               <Icon icon={'formkit:submit'} />
             </motion.button>
@@ -180,9 +190,12 @@ export default function ProfilePage() {
 
 function Group(props: GroupProps) {
   return (
-    <div onClick={() => props.onClick(props.id)}>
-      <h1>{props.title}</h1>
-      <p>{props.tasks} task</p>
+    <div className='flex flex-col rounded-2xl 
+    p-2.5 pl-5 gap-1 w-full bg-[var(--SeaShell-25)]
+    cursor-pointer' 
+    onClick={() => props.onClick(props.id)}>
+      <h1 className='text-[var(--SeaShell-950)] text-xs font-bold'>{props.title}</h1>
+      <p className='text-[var(--SeaShell-950)] text-[12px] opacity-50'>{props.tasks} task</p>
     </div>
   )
 }

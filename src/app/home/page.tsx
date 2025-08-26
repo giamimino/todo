@@ -12,7 +12,11 @@ import { useDebounce } from "@/hooks/useDebounce";
 import dynamic from "next/dynamic";
 import { TaskContext } from "../context/TaskContext";
 import EditSide from "@/components/EditSide/EditSide";
-import Tasks from "@/components/ui/common/Tasks";
+
+const Tasks = dynamic(() => import("@/components/ui/common/Tasks"), {
+  ssr: false
+})
+
 const AddTask = dynamic(() => import("@/components/addTask/AddTaks"), {
   ssr: false,
 });

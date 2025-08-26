@@ -4,12 +4,6 @@ import { redis } from "./lib/redis";
 import { cookies } from "next/headers";
 
 export async function middleware(request: NextRequest) {
-  const ua = request.headers.get("user-agent") || "";
-
-  if (ua.includes("Unlighthouse") || ua.includes("Googlebot")) {
-    return NextResponse.next();
-  }
-
   const cookieStore = await cookies()
   const sessionId = cookieStore.get("sessionId")?.value;
   const path = request.nextUrl.pathname;
