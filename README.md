@@ -1,37 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# todo
 
-## Getting Started
+A simple, modern Todo app built with **Next.js + TypeScript** and styled with **SCSS/TailWindCSS**. This repo was bootstrapped with `create-next-app` and includes a Prisma folder ready for local database work — so it's already set up to be extended into a true fullstack app.
 
-First, run the development server:
+> Live demo (if available): `https://todo-gia.vercel.app` — update or remove if you deploy elsewhere.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## What this repo is (short)
+
+This is a polished frontend for a todo application with a fullstack-ready structure (Prisma is already present). The project follows modern Next.js conventions (App Router) and uses TypeScript for safer code.
+
+---
+
+## Highlights / features
+
+* Todo creation, editing, completion tracking (UI-level)
+* SCSS/TailWindCss-based styling and modular component structure
+* TypeScript throughout
+* Prisma folder included for database modeling and migrations (good starting point for persisting todos)
+
+---
+
+## Tech stack
+
+* **Next.js** (App Router) — modern routing and server components
+* **TypeScript** — typed codebase
+* **SCSS/TailWIndCss** — styles
+* **Prisma** — DB toolkit present in the repo (schema + migrations possible)
+
+---
+
+## Project structure (high level)
+
+```
+.
+├─ prisma/                # Prisma schema and migrations (DB models)
+├─ public/                # static assets: images, icons
+├─ src/                   # Next.js app source (app pages, components, styles)
+├─ package.json
+├─ next.config.ts
+├─ tsconfig.json
+└─ README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Adjust the tree above if your repo differs slightly — it’s based on the current repository layout.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+Small PRs welcome. For larger structural changes (DB design, auth), open an issue first so the approach can be discussed.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# todo
+This README intentionally excludes installation and deployment instructions per your request. If you want those added later (or want the README updated to reflect exact `package.json` scripts and dependencies), paste `package.json` here and I’ll update the README to match.
