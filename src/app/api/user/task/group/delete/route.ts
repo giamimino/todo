@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       },
     });
 
-    (async () => {
+    queueMicrotask(async () => {
       const sessionId = (await cookies()).get("sessionId")?.value;
       const sessionRedisKey = `cachedUser:${sessionId}`;
       const cachedUser = (await redis.get(sessionRedisKey)) as User;
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       };
 
       await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 });
-    })();
+    })
 
     return NextResponse.json({
       success: true,

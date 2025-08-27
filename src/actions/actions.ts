@@ -94,7 +94,7 @@ export async function addTask(
       };
     }
 
-    (async () => {
+    queueMicrotask(async () => {
       try {
         const cachedUserKey = `cachedUser:${sessionId}`;
         const cachedUser = (await redis.get(cachedUserKey)) as User;
@@ -118,7 +118,7 @@ export async function addTask(
       } catch (err) {
         console.log(err);
       }
-    })();
+    });
 
     return { success: true, task };
   } catch (err) {
@@ -157,16 +157,16 @@ export async function addGroup(formData: FormData, userId: string) {
       };
     }
 
-    (async () => {
+    queueMicrotask(async () => {
       const sessionId = (await cookies()).get("sessionId")?.value;
       const cachedUserKey = `cachedUser:${sessionId}`;
-      const cachedUser = (await redis.get(cachedUserKey)) as User;
+      const cachedUser = await redis.get(cachedUserKey) as User;
       if (!cachedUser) return;
 
       const newCachedUser = {
         ...cachedUser,
         group: [
-          ...(cachedUser.group ?? []),
+          ...(cachedUser.group || []),
           {
             title: group.title,
             id: group.id,
@@ -175,7 +175,7 @@ export async function addGroup(formData: FormData, userId: string) {
       };
 
       await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-    })();
+    });
 
     return {
       success: true,
@@ -206,7 +206,7 @@ export async function GroupRemove(groupId: string) {
       };
     }
 
-    (async () => {
+    queueMicrotask(async () => {
       const sessionId = (await cookies()).get("sessionId")?.value;
       const cachedUserKey = `cachedUser:${sessionId}`;
       const cachedUser = (await redis.get(cachedUserKey)) as User;
@@ -217,7 +217,7 @@ export async function GroupRemove(groupId: string) {
         group: cachedUser.group.filter((g) => g.id !== groupId),
       };
       await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-    })();
+    });
 
     return {
       success: true,
@@ -252,7 +252,7 @@ export async function addFavorite(taskId: string, userId: string) {
       };
     }
 
-    (async () => {
+    queueMicrotask(async () => {
       const sessionId = (await cookies()).get("sessionId")?.value;
       const cachedUserKey = `cachedUser:${sessionId}`;
       const cachedUser = (await redis.get(cachedUserKey)) as User;
@@ -263,7 +263,7 @@ export async function addFavorite(taskId: string, userId: string) {
         favorite: [...(cachedUser.favorite || []), favorite],
       };
       await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-    })();
+    });
 
     return {
       success: true,
@@ -292,7 +292,7 @@ export async function removeFavorite(favoriteId: string) {
       };
     }
 
-    (async () => {
+    queueMicrotask(async () => {
       const sessionId = (await cookies()).get("sessionId")?.value;
       const cachedUserKey = `cachedUser:${sessionId}`;
       const cachedUser = (await redis.get(cachedUserKey)) as User;
@@ -303,7 +303,7 @@ export async function removeFavorite(favoriteId: string) {
         favorite: cachedUser.favorite?.filter((f) => f.id !== favorite.id),
       };
       await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-    })();
+    });
 
     return {
       success: true,
@@ -342,7 +342,7 @@ export async function editTask(formData: FormData, taskId: string) {
       };
     }
 
-    (async () => {
+    queueMicrotask(async () => {
       const sessionId = (await cookies()).get("sessionId")?.value
       const sessionRedisKey = `cachedUser:${sessionId}`
       const cachedUser = await redis.get(sessionRedisKey) as User
@@ -359,7 +359,7 @@ export async function editTask(formData: FormData, taskId: string) {
       }
 
       await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 })
-    })();
+    })
 
     return {
       success: true,

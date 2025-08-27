@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     await prisma.todo.delete({ where: { id: taskId } });
 
-    (async () => {
+    queueMicrotask(async () => {
       try {
         const sessionId = (await cookies()).get("sessionId")?.value
         const cachedUserKey = `cachedUser:${sessionId}`
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       }catch(err) {
         console.log(err);
       }
-    })();
+    });
 
     return NextResponse.json({
       success: true,
