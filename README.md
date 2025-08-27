@@ -2,7 +2,9 @@
 
 A simple, modern Todo app built with **Next.js + TypeScript** and styled with **SCSS/TailWindCSS**. This repo was bootstrapped with `create-next-app` and includes a Prisma folder ready for local database work — so it's already set up to be extended into a true fullstack app.
 
-> Live demo: `https://todo-gia.vercel.app` 
+> Live demo: `https://todo-gia.vercel.app`
+
+if you find anything wrong we do like to mention us, giaerrors@gmail.com
 
 ---
 
@@ -56,3 +58,4 @@ Small PRs welcome. For larger structural changes (DB design, auth), open an issu
 ## Notes
 
 This README intentionally excludes installation and deployment instructions per your request. If you want those added later (or want the README updated to reflect exact `package.json` scripts and dependencies), paste `package.json` here and I’ll update the README to match.
+(IN DEVELOPMENT)
