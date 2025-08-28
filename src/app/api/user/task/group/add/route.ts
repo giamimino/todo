@@ -57,27 +57,23 @@ export async function POST(req: Request) {
     if (!task)
       return errorResponse("Something went wrong can't task in group.");
 
-    queueMicrotask(() => {
-      (async () => {
-        const sessionId = (await cookies()).get("sessionId")?.value;
-        const cachedUserRedisKey = `cachedUser:${sessionId}`;
-        const cachedUser = (await redis.get(cachedUserRedisKey)) as User;
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const cachedUserRedisKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(cachedUserRedisKey)) as User;
 
-        const newCachedUser = {
-          ...cachedUser,
-          todo: cachedUser.todo.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  groupId: task.groupId,
-                }
-              : t
-          ),
-        };
+    const newCachedUser = {
+      ...cachedUser,
+      todo: cachedUser.todo.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              groupId: task.groupId,
+            }
+          : t
+      ),
+    };
 
-        await redis.set(cachedUserRedisKey, newCachedUser, { ex: 60 * 10 });
-      })();
-    });
+    await redis.set(cachedUserRedisKey, newCachedUser, { ex: 60 * 10 });
 
     return NextResponse.json({
       success: true,

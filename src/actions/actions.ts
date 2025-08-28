@@ -93,34 +93,24 @@ export async function addTask(
         message: "Task can't be created.",
       };
     }
+    const cachedUserKey = `cachedUser:${sessionId}`;
+    const cachedUser = ((await redis.get(cachedUserKey)) || {}) as User;
 
-    queueMicrotask(() => {
-      (async () => {
-        try {
-          const cachedUserKey = `cachedUser:${sessionId}`;
-          const cachedUser = (await redis.get(cachedUserKey)) as User;
-          if (!cachedUser) return;
+    const newCachedUser: User = {
+      ...cachedUser,
+      todo: [
+        ...(cachedUser.todo || []),
+        {
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          deadline: task.deadline,
+          groupId: task.groupId || null,
+        },
+      ],
+    };
 
-          const newCachedUser: User = {
-            ...cachedUser,
-            todo: [
-              ...(cachedUser.todo || []),
-              {
-                id: task.id,
-                title: task.title,
-                description: task.description,
-                deadline: task.deadline,
-                groupId: task.groupId || null,
-              },
-            ],
-          };
-
-          await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-        } catch (err) {
-          console.log(err);
-        }
-      })();
-    });
+    await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
 
     return { success: true, task };
   } catch (err) {
@@ -159,30 +149,19 @@ export async function addGroup(formData: FormData, userId: string) {
       };
     }
 
-    queueMicrotask(() => {
-      (async () => {
-        try {
-          const sessionId = (await cookies()).get("sessionId")?.value;
-          if (!sessionId) return;
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const cachedUserKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(cachedUserKey)) as User;
 
-          const cachedUserKey = `cachedUser:${sessionId}`;
-          const cachedUser = (await redis.get(cachedUserKey)) as User;
-          if (!cachedUser) return;
+    const newCachedUser = {
+      ...cachedUser,
+      group: [
+        ...(cachedUser.group || []),
+        { title: group.title, id: group.id },
+      ],
+    };
 
-          const newCachedUser = {
-            ...cachedUser,
-            group: [
-              ...(cachedUser.group || []),
-              { title: group.title, id: group.id },
-            ],
-          };
-
-          await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-        } catch (err) {
-          console.error("Cache update error:", err);
-        }
-      })();
-    });
+    await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
 
     return {
       success: true,
@@ -208,28 +187,18 @@ export async function GroupRemove(groupId: string) {
       return { success: false, message: "Group can't be deleted." };
     }
 
-    queueMicrotask(() => {
-      (async () => {
-        try {
-          const sessionId = (await cookies()).get("sessionId")?.value;
-          if (!sessionId) return;
+    const sessionId = (await cookies()).get("sessionId")?.value;
 
-          const cachedUserKey = `cachedUser:${sessionId}`;
-          const cachedUser = (await redis.get(cachedUserKey)) as User;
-          if (!cachedUser) return;
+    const cachedUserKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(cachedUserKey)) as User;
 
-          const newCachedUser = {
-            ...cachedUser,
-            group: cachedUser.group.filter((g) => g.id !== group.id),
-          };
+    const newCachedUser = {
+      ...cachedUser,
+      group: cachedUser.group.filter((g) => g.id !== group.id),
+    };
 
-          await redis.set(cachedUserKey, JSON.stringify(newCachedUser), {
-            ex: 60 * 10,
-          });
-        } catch (err) {
-          console.error("Failed to update cache:", err);
-        }
-      })();
+    await redis.set(cachedUserKey, JSON.stringify(newCachedUser), {
+      ex: 60 * 10,
     });
 
     return {
@@ -265,20 +234,15 @@ export async function addFavorite(taskId: string, userId: string) {
       };
     }
 
-    queueMicrotask(() => {
-      (async () => {
-        const sessionId = (await cookies()).get("sessionId")?.value;
-        const cachedUserKey = `cachedUser:${sessionId}`;
-        const cachedUser = (await redis.get(cachedUserKey)) as User;
-        if (!cachedUser) return;
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const cachedUserKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(cachedUserKey)) as User;
 
-        const newCachedUser = {
-          ...cachedUser,
-          favorite: [...(cachedUser.favorite || []), favorite],
-        };
-        await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-      })();
-    });
+    const newCachedUser = {
+      ...cachedUser,
+      favorite: [...(cachedUser.favorite || []), favorite],
+    };
+    await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
 
     return {
       success: true,
@@ -307,20 +271,15 @@ export async function removeFavorite(favoriteId: string) {
       };
     }
 
-    queueMicrotask(() => {
-      (async () => {
-        const sessionId = (await cookies()).get("sessionId")?.value;
-        const cachedUserKey = `cachedUser:${sessionId}`;
-        const cachedUser = (await redis.get(cachedUserKey)) as User;
-        if (!cachedUser) return;
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const cachedUserKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(cachedUserKey)) as User;
 
-        const newCachedUser = {
-          ...cachedUser,
-          favorite: cachedUser.favorite?.filter((f) => f.id !== favorite.id),
-        };
-        await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-      })();
-    });
+    const newCachedUser = {
+      ...cachedUser,
+      favorite: cachedUser.favorite?.filter((f) => f.id !== favorite.id),
+    };
+    await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
 
     return {
       success: true,
@@ -359,29 +318,24 @@ export async function editTask(formData: FormData, taskId: string) {
       };
     }
 
-    queueMicrotask(() => {
-      (async () => {
-        const sessionId = (await cookies()).get("sessionId")?.value;
-        const sessionRedisKey = `cachedUser:${sessionId}`;
-        const cachedUser = (await redis.get(sessionRedisKey)) as User;
-        if (!cachedUser) return;
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const sessionRedisKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(sessionRedisKey)) as User;
 
-        const newCachedUser = {
-          ...cachedUser,
-          todo: cachedUser.todo.map((t) =>
-            t.id === task.id
-              ? {
-                  ...t,
-                  title,
-                  description,
-                }
-              : t
-          ),
-        };
+    const newCachedUser = {
+      ...cachedUser,
+      todo: cachedUser.todo.map((t) =>
+        t.id === task.id
+          ? {
+              ...t,
+              title,
+              description,
+            }
+          : t
+      ),
+    };
 
-        await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 });
-      })();
-    });
+    await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 });
 
     return {
       success: true,

@@ -31,25 +31,15 @@ export async function POST(req: Request) {
 
     await prisma.todo.delete({ where: { id: taskId } });
 
-    queueMicrotask(() => {
-      (async () => {
-        try {
-          const sessionId = (await cookies()).get("sessionId")?.value;
-          const cachedUserKey = `cachedUser:${sessionId}`;
-          const cachedUser = (await redis.get(cachedUserKey)) as User;
-          if (!cachedUser) return;
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const cachedUserKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(cachedUserKey)) as User;
+    const newCachedUser = {
+      ...cachedUser,
+      todo: cachedUser.todo.filter((todo) => todo.id !== taskId),
+    };
 
-          const newCachedUser = {
-            ...cachedUser,
-            todo: cachedUser.todo.filter((todo) => todo.id !== taskId),
-          };
-
-          await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
-        } catch (err) {
-          console.log(err);
-        }
-      })();
-    });
+    await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10 });
 
     return NextResponse.json({
       success: true,

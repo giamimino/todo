@@ -42,19 +42,15 @@ export async function POST(req: Request) {
       },
     });
 
-    queueMicrotask(() => {
-      (async () => {
-        const sessionId = (await cookies()).get("sessionId")?.value;
-        const sessionRedisKey = `cachedUser:${sessionId}`;
-        const cachedUser = (await redis.get(sessionRedisKey)) as User;
-        const newCachedUser = {
-          ...cachedUser,
-          todo: cachedUser.todo.filter((t) => t.id !== taskId),
-        };
+    const sessionId = (await cookies()).get("sessionId")?.value;
+    const sessionRedisKey = `cachedUser:${sessionId}`;
+    const cachedUser = (await redis.get(sessionRedisKey)) as User;
+    const newCachedUser = {
+      ...cachedUser,
+      todo: cachedUser.todo.filter((t) => t.id !== taskId),
+    };
 
-        await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 });
-      })();
-    });
+    await redis.set(sessionRedisKey, newCachedUser, { ex: 60 * 10 });
 
     return NextResponse.json({
       success: true,
