@@ -101,8 +101,6 @@ export default function ProfilePage() {
     }
   }
 
-  
-
   return (
     <div className='p-2.5 flex flex-col gap-2.5'>
       <header className="flex w-full justify-between p-2.5 gap-2.5">

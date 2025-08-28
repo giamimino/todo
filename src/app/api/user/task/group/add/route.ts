@@ -3,80 +3,88 @@ import { redis } from "@/lib/redis";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-
 function errorResponse(message: string) {
   return NextResponse.json({
     success: false,
-    message
-  })
+    message,
+  });
 }
 
 type Group = {
-  id: string,
-  title: string, 
-}
+  id: string;
+  title: string;
+};
 
-type Todo = { 
-  id: string; 
-  title: string; 
-  description: string; 
-  deadline: Date; 
-  groupId: string | null 
-}
+type Todo = {
+  id: string;
+  title: string;
+  description: string;
+  deadline: Date;
+  groupId: string | null;
+};
 
-type User = { 
-  id: string; 
-  name: string; 
-  profileImage: string; 
-  todo: Todo[]; 
-  group?: Group[] | null 
-}
+type User = {
+  id: string;
+  name: string;
+  profileImage: string;
+  todo: Todo[];
+  group?: Group[] | null;
+};
 
 export async function POST(req: Request) {
   try {
-    const {groupId, taskId}: {
-      groupId: string,
-      taskId: string
-    } = await req.json()
+    const {
+      groupId,
+      taskId,
+    }: {
+      groupId: string;
+      taskId: string;
+    } = await req.json();
 
     if (!groupId || !taskId) {
       return errorResponse("Missing groupId or taskId");
     }
 
-
     const task = await prisma.todo.update({
       where: { id: taskId },
       data: {
-        groupId
+        groupId,
       },
       select: {
         groupId: true,
-      }
-    })
-    if(!task) return errorResponse("Something went wrong can't task in group.");
+      },
+    });
+    if (!task)
+      return errorResponse("Something went wrong can't task in group.");
 
-    queueMicrotask(async () => {
-      const sessionId = (await cookies()).get("sessionId")?.value
-      const cachedUserRedisKey = `cachedUser:${sessionId}`
-      const cachedUser = await redis.get(cachedUserRedisKey) as User
+    queueMicrotask(() => {
+      (async () => {
+        const sessionId = (await cookies()).get("sessionId")?.value;
+        const cachedUserRedisKey = `cachedUser:${sessionId}`;
+        const cachedUser = (await redis.get(cachedUserRedisKey)) as User;
 
-      const newCachedUser = {
-        ...cachedUser,
-        todo: cachedUser.todo.map((t) => t.id === taskId ? {
-          ...t,
-          groupId: task.groupId
-        } : t)
-      }
+        const newCachedUser = {
+          ...cachedUser,
+          todo: cachedUser.todo.map((t) =>
+            t.id === taskId
+              ? {
+                  ...t,
+                  groupId: task.groupId,
+                }
+              : t
+          ),
+        };
 
-      await redis.set(cachedUserRedisKey, newCachedUser, { ex: 60 * 10 })
-    })
-    
+        await redis.set(cachedUserRedisKey, newCachedUser, { ex: 60 * 10 });
+      })();
+    });
+
     return NextResponse.json({
       success: true,
-      task
-    })
-  }catch (err) {
+      task,
+    });
+  } catch (err) {
     console.log(err);
-    return errorResponse("Something went wrong.")
+    return errorResponse("Something went wrong.");
   }
 }
