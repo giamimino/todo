@@ -1,7 +1,7 @@
 .group {
   position: relative;
   
-  button {
+  >button {
     padding: 10px;
     border-radius: 50%;
     background-color: var(--SeaShell-100);
@@ -66,6 +66,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  z-index: 99;
 
   textarea {
     min-height: 64px;
@@ -91,7 +92,7 @@
     padding: 10px;
     border-radius: 50%;
     background-color: var(--BlushPink-400);
-    color: var(--SeaShell-25);
+    color: #FFFFFF;
     transition: all 0.4s ease;
     font-size: 18px;
     cursor: pointer;
@@ -99,7 +100,7 @@
     
     &:hover {
       background-color: var(--SeaShell-200);
-      color: var(--SeaShell-950);
+      color: #FFFFFF;
       opacity: 0.8;
     }
   }

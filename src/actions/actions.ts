@@ -1,7 +1,10 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+import { randomUUID } from "crypto";
+import ImageKit from "imagekit";
 import { cookies } from "next/headers";
+import sharp from "sharp";
 
 type Todo = {
   id: string;
@@ -347,5 +350,92 @@ export async function editTask(formData: FormData, taskId: string) {
       success: false,
       message: "Something went wrong.",
     };
+  }
+}
+
+export async function updateProfile(formData: FormData, image: File, userId: string) {
+  const imageKit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
+  })
+  try {
+    const name = formData.get("name") as string
+  
+    if(!name) {
+      return {
+        success: false,
+        message: "Name field are required."
+      }
+    }
+    let imageUrl:string = ""
+    if (image && image.size > 0 && image.type.startsWith("image/")) {
+      const arrayBuffer = await image.arrayBuffer();
+      const inputBuffer = Buffer.from(arrayBuffer);
+
+      let outputBuffer: Buffer;
+      let quality = 60;
+
+      outputBuffer = await sharp(inputBuffer)
+        .resize(64, 64)
+        .webp({ quality })
+        .toBuffer();
+
+      const uploaded = await imageKit.upload({
+        file: outputBuffer,
+        fileName: `profile-${userId}.webp`,
+        folder: "/posts/todo-user-images",
+        overwriteFile: true,
+        overwriteAITags: true,
+        overwriteCustomMetadata: true,
+        overwriteTags: true,
+      });
+
+      imageUrl = uploaded.url;
+    }
+  
+    const profile = await prisma.user.update({
+      where: { id: userId},
+      data: {
+        name,
+        ...(imageUrl !== "" ? { profileImage: imageUrl } : {})
+      },
+      select: {
+        name: true,
+        profileImage: true,
+      }
+    })
+
+    if(!profile) {
+      return {
+        success: false,
+        message: "Profile can't be edited. try again."
+      }
+    }
+
+    const sessionId = (await cookies()).get("sessionId")?.value
+    const cachedUserKey = `cachedUser:${sessionId}`
+    const cachedUser = await redis.get(cachedUserKey) as User
+
+    if(cachedUser) {
+      const newCachedUser: User = {
+        ...cachedUser,
+        name: profile.name,
+        profileImage: profile.profileImage
+      }
+
+      await redis.set(cachedUserKey, newCachedUser, { ex: 60 * 10})
+    }
+
+    return {
+      success: true,
+      profile
+    }
+  }catch(err) {
+    console.log(err);
+    return {
+      success: false,
+      message: "Something went wrong."
+    }
   }
 }

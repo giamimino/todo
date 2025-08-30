@@ -1,11 +1,14 @@
 'use client'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, Suspense, lazy } from 'react'
 import { Icon } from '@iconify/react'
 import { useRouter } from 'next/navigation'
-import Profile from '@/components/profile/profile'
 import Statistic from '@/components/profile/statistic/statistic'
 import { AnimatePresence, motion } from 'framer-motion'
-import { addGroup } from '@/actions/actions'
+import { addGroup, updateProfile } from '@/actions/actions'
+import Error from '@/components/ui/common/error'
+import ImageLoading from '@/components/loading/imageLoading'
+import Loading from '@/components/loading/loading'
+const Profile  = lazy(() => import('@/components/profile/profile'))
 
 type Group = { id: string, title: string }
 type Todo = { id: string; title: string; description: string; deadline: Date; groupId: string | null }
@@ -23,6 +26,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [edit, setEdit] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  const [image, setImage] = useState<File>(
+    new File([], "placeholder.png", {type: "image/png"})
+  )
   const router = useRouter()
 
   useEffect(() => {
@@ -73,20 +80,17 @@ export default function ProfilePage() {
   }, [user])
 
 
-  if (loading) return <p>loading...</p>
-  if (!user) return <p>{error}</p>
   
-
   function handleGroupSide(groupId: string) {
     router.push(`/home?g=${groupId}`)
   }
-
+  
   async function handleSubmitGroup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
     const formData = new FormData(e.currentTarget)
     const result = await addGroup(formData, user!.id)
-
+    
     if(result.success) {
       setUser(prev => prev ? {
         ...prev,
@@ -96,13 +100,54 @@ export default function ProfilePage() {
       setShowForm(false)
     } else {
       if(!result.success) {
-        alert(result.message)
+        setError(result.message || "Something went wrong.")
       }
     }
   }
 
+  const userUpdate = useCallback((profile: { name: string, profileImage: string }) => {
+    setUser(prev => prev ? {
+      ...prev,
+      name: profile.name,
+      profileImage: profile.profileImage,
+    } : prev)
+  }, [])
+
+  const handleUpload = useCallback((uploaded: File) => {
+    setImage(uploaded)
+    setUser(prev => prev ? {
+      ...prev,
+      profileImage: URL.createObjectURL(uploaded)
+    } : prev)
+  }, [])
+  
+  async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setUpdating(true)
+
+    const formData = new FormData(e.currentTarget)
+    const result = await updateProfile(formData, image, user!.id)
+    
+    if(result.success && result.profile) {
+      userUpdate(result.profile)
+      setEdit(false)
+    } else {
+      setError(result.message || "Something went wrong.")
+      setEdit(false)
+    }
+
+    setUpdating(false)
+  }
+  
+  if (loading) return <p>loading...</p>
+  if (!user) return <p>{error}</p>
   return (
     <div className='p-2.5 flex flex-col gap-2.5'>
+      {error !== "" && (
+        <Error
+          error={error}
+        />
+      )}
       <header className="flex w-full justify-between p-2.5 gap-2.5">
         <button 
         onClick={() => router.push('/home')}>
@@ -113,10 +158,18 @@ export default function ProfilePage() {
         <h1>Profile</h1>
         <span></span>
       </header>
-      <Profile
-        image={user.profileImage === 'user' ? '/user.webp' : user.profileImage}
-        name={user.name}
-      />
+      <Suspense fallback={<ImageLoading />}>
+        {updating ? (
+          <ImageLoading />
+        ) : (
+          <Profile
+            image={user.profileImage === 'user' ? '/user.webp' : user.profileImage}
+            name={user.name}
+            edit={edit}
+            handleUpload={handleUpload}
+          />
+        )}
+      </Suspense>
       <Statistic
         curTotal={user.todo.length}
         total={user.todo.length}
@@ -191,6 +244,7 @@ export default function ProfilePage() {
             exit={{ opacity: 0 }}
             className='flex flex-col gap-2.5 fixed left-1/2 
             translate-x-[-50%] bottom-20'
+            onSubmit={handleUpdate}
           >
             <motion.input
               type='name'

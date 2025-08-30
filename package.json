@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@iconify/react": "^6.0.0",
+    "@imagekit/next": "^2.1.2",
     "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^6.13.0",
     "@types/bcrypt": "^6.0.0",
@@ -18,13 +19,15 @@
     "bcrypt": "^6.0.0",
     "cookies": "^0.9.1",
     "framer-motion": "^12.23.12",
+    "imagekit": "^6.0.0",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-virtualized-auto-sizer": "^1.0.26",
     "react-window": "^1.8.11",
     "sass": "^1.90.0",
-    "scss": "^0.2.4"
+    "scss": "^0.2.4",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
