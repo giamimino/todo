@@ -1,7 +1,6 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
-import { randomUUID } from "crypto";
 import ImageKit from "imagekit";
 import { cookies } from "next/headers";
 import sharp from "sharp";
@@ -372,11 +371,9 @@ export async function updateProfile(formData: FormData, image: File, userId: str
     if (image && image.size > 0 && image.type.startsWith("image/")) {
       const arrayBuffer = await image.arrayBuffer();
       const inputBuffer = Buffer.from(arrayBuffer);
+      const quality = 60;
 
-      let outputBuffer: Buffer;
-      let quality = 60;
-
-      outputBuffer = await sharp(inputBuffer)
+      const outputBuffer = await sharp(inputBuffer)
         .resize(64, 64)
         .webp({ quality })
         .toBuffer();

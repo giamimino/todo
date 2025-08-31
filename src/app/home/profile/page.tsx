@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { addGroup, updateProfile } from '@/actions/actions'
 import Error from '@/components/ui/common/error'
 import ImageLoading from '@/components/loading/imageLoading'
-import Loading from '@/components/loading/loading'
 const Profile  = lazy(() => import('@/components/profile/profile'))
 
 type Group = { id: string, title: string }
